@@ -50,7 +50,7 @@
                                         <td>
                                             <a href="mailto: <?php echo e($restorant->user?$restorant->user->email:""); ?>"><?php echo e($restorant->user?$restorant->user->email:__('Deleted')); ?></a>
                                         </td>
-                                        <td><?php echo e($restorant->created_at->format(config('settings.datetime_display_format'))); ?></td>
+                                        <td><?php echo e($restorant->created_at->locale(Config::get('app.locale'))->isoFormat('LLLL')); ?></td>
                                         <td>
                                            <?php if($restorant->active == 1): ?>
                                                 <span class="badge badge-success"><?php echo e(__('Active')); ?></span>
@@ -64,25 +64,21 @@
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-
-                                                        <a class="dropdown-item" href="<?php echo e(route('admin.restaurants.edit', $restorant)); ?>"><?php echo e(__('Edit')); ?></a>
-                                                        <a class="dropdown-item" href="<?php echo e(route('admin.restaurants.loginas', $restorant)); ?>"><?php echo e(__('Login as')); ?></a>
-                                                        <form action="<?php echo e(route('admin.restaurants.destroy', $restorant)); ?>" method="post">
-                                                            <?php echo csrf_field(); ?>
-                                                            <?php echo method_field('delete'); ?>
-                                                            <?php if($restorant->active == 0): ?>
-                                                                <a class="dropdown-item" href="<?php echo e(route('restaurant.activate', $restorant)); ?>"><?php echo e(__('Activate')); ?></a>
-                                                            <?php else: ?>
+                                                    <a class="dropdown-item" href="<?php echo e(route('admin.restaurants.edit', $restorant)); ?>"><?php echo e(__('Edit')); ?></a>
+                                                    <a class="dropdown-item" href="<?php echo e(route('admin.restaurants.loginas', $restorant)); ?>"><?php echo e(__('Login as')); ?></a>
+                                                    <form action="<?php echo e(route('admin.restaurants.destroy', $restorant)); ?>" method="post">
+                                                        <?php echo csrf_field(); ?>
+                                                        <?php echo method_field('delete'); ?>
+                                                        <?php if($restorant->active == 0): ?>
+                                                            <a class="dropdown-item" href="<?php echo e(route('restaurant.activate', $restorant)); ?>"><?php echo e(__('Activate')); ?></a>
+                                                        <?php else: ?>
                                                             <button type="button" class="dropdown-item" onclick="confirm('<?php echo e(__("Are you sure you want to deactivate this restaurant?")); ?>') ? this.parentElement.submit() : ''">
                                                                 <?php echo e(__('Deactivate')); ?>
 
                                                             </button>
-                                                            <?php endif; ?>
-                                                            
-                                                            
-                                                        </form>
+                                                        <?php endif; ?>
+                                                    </form>
                                                     <a class="dropdown-item warning red" onclick="return confirm('Are you sure you want to delete this Restaurant from Database? This will aslo delete all data related to it. This is irreversible step.')"  href="<?php echo e(route('admin.restaurant.remove',$restorant)); ?>"><?php echo e(__('Delete')); ?></a>
-
                                                 </div>
                                             </div>
                                         </td>

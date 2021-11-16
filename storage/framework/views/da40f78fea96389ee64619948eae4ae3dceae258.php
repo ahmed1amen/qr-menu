@@ -3,59 +3,127 @@
 
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('content'); ?>
-    <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
+<div class="header bg-gradient-info pb-6 pt-5 pt-md-8">
+    <div class="container-fluid">
+
+        <div class="nav-wrapper">
+            <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="res_menagment" role="tablist">
+
+                <li class="nav-item">
+                    <a class="nav-link mb-sm-3 mb-md-0 active " id="tabs-menagment-main" data-toggle="tab" href="#menagment" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-badge mr-2"></i><?php echo e(__('Restaurant Management')); ?></a>
+                </li>
+
+                <?php if(count($appFields)>0): ?>
+                    <li class="nav-item">
+                        <a class="nav-link mb-sm-3 mb-md-0 " id="tabs-menagment-main" data-toggle="tab" href="#apps" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-spaceship mr-2"></i><?php echo e(__('Apps')); ?></a>
+                    </li>
+                <?php endif; ?>
+
+                <li class="nav-item">
+                    <a class="nav-link mb-sm-3 mb-md-0" id="tabs-menagment-main" data-toggle="tab" href="#hours" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-time-alarm mr-2"></i><?php echo e(__('Working Hours')); ?></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link mb-sm-3 mb-md-0 " id="tabs-menagment-main" data-toggle="tab" href="#location" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-square-pin mr-2"></i><?php echo e(__('Location')); ?></a>
+                </li>
+                
+                <?php if(auth()->user()->hasRole('admin')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link mb-sm-3 mb-md-0" id="tabs-menagment-main" data-toggle="tab" href="#plan" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-money-coins mr-2"></i><?php echo e(__('Plans')); ?></a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </div>
+
     </div>
-    <div class="container-fluid mt--7">
-        <div class="row">
-            <div class="col-xl-6">
-                <br/>
-                <div class="card bg-secondary shadow">
-                    <div class="card-header bg-white border-0">
-                        <div class="row align-items-center">
-                            <div class="col-8">
-                                <h3 class="mb-0"><?php echo e(__('Restaurant Management')); ?></h3>
-                                <?php if(config('settings.wildcard_domain_ready')): ?>
+</div>
+
+
+
+<div class="container-fluid mt--7">
+    <div class="row">
+        <div class="col-12">
+            <br />
+
+            <?php echo $__env->make('partials.flash', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
+            <div class="tab-content" id="tabs">
+
+
+                <!-- Tab Managment -->
+                <div class="tab-pane fade show active" id="menagment" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
+                    <div class="card bg-secondary shadow">
+                        <div class="card-header bg-white border-0">
+                            <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h3 class="mb-0"><?php echo e(__('Restaurant Management')); ?></h3>
+                                    <?php if(config('settings.wildcard_domain_ready')): ?>
                                     <span class="blockquote-footer"><?php echo e($restorant->getLinkAttribute()); ?></span>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <?php if(auth()->user()->hasRole('admin')): ?>
+                                    <a href="<?php echo e(route('admin.restaurants.index')); ?>"
+                                        class="btn btn-sm btn-info"><?php echo e(__('Back to list')); ?></a>
+                                    <?php endif; ?>
+                                    <?php if(!config('settings.is_pos_cloud_mode')): ?>
+                                        <?php if(config('settings.wildcard_domain_ready')): ?>
+                                        <a target="_blank" href="<?php echo e($restorant->getLinkAttribute()); ?>"
+                                            class="btn btn-sm btn-success"><?php echo e(__('View it')); ?></a>
+                                        <?php else: ?>
+                                        <a target="_blank" href="<?php echo e(route('vendor',$restorant->subdomain)); ?>"
+                                            class="btn btn-sm btn-success"><?php echo e(__('View it')); ?></a>
+                                        <?php endif; ?>
+                                        <?php if($hasCloner): ?>
+                                            <a href="<?php echo e(route('admin.restaurants.create')."?cloneWith=".$restorant->id); ?>" class="btn btn-sm btn-warning text-white"><?php echo e(__('Clone it')); ?></a>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                        
+
+                                </div>
+
                             </div>
-                            <div class="col-4 text-right">
-                                <?php if(auth()->user()->hasRole('admin')): ?>
-                                    <a href="<?php echo e(route('admin.restaurants.index')); ?>" class="btn btn-sm btn-primary"><?php echo e(__('Back to list')); ?></a>
-                                <?php endif; ?>
-
-                                <?php if(config('settings.wildcard_domain_ready')): ?>
-                                    <a target="_blank" href="<?php echo e($restorant->getLinkAttribute()); ?>" class="btn btn-sm btn-success"><?php echo e(__('View it')); ?></a>
-                                <?php else: ?>
-                                    <a target="_blank" href="<?php echo e(route('vendor',$restorant->subdomain)); ?>" class="btn btn-sm btn-success"><?php echo e(__('View it')); ?></a>
-                                <?php endif; ?>
-
-                            </div>
-
                         </div>
-                    </div>
-                    <div class="card-body">
-                       <h6 class="heading-small text-muted mb-4"><?php echo e(__('Restaurant information')); ?></h6>
-                        <?php echo $__env->make('partials.flash', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-                        <?php echo $__env->make('restorants.partials.info', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                        <div class="card-body">
+                            <h6 class="heading-small text-muted mb-4"><?php echo e(__('Restaurant information')); ?></h6>
+                            
+                            <?php echo $__env->make('restorants.partials.info', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
                             <hr />
                             <?php echo $__env->make('restorants.partials.owner', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-6 mb-5 mb-xl-0">
-                    <br/>
-                    <?php echo $__env->make('restorants.partials.location', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
-                    <br/>
-                    <?php echo $__env->make('restorants.partials.hours', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
-                <?php if(auth()->user()->hasRole('admin')&&config('app.isqrsaas')): ?>
-                    <br />
-                    <?php echo $__env->make('restorants.partials.plan', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                <!-- Tab Apps -->
+                <?php if(count($appFields)>0): ?>
+                    <div class="tab-pane fade show" id="apps" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
+                        <?php echo $__env->make('restorants.partials.apps', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?> 
+                    </div>
                 <?php endif; ?>
+
+                <!-- Tab Location -->
+                <div class="tab-pane fade show" id="location" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
+                    <?php echo $__env->make('restorants.partials.location', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                </div>
+                
+
+                <!-- Tab Hours -->
+                <div class="tab-pane fade show" id="hours" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
+                    <?php echo $__env->make('restorants.partials.hours', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                </div>
+
+                <!-- Tab Hours -->
+                <?php if(auth()->user()->hasRole('admin')): ?>
+                    <div class="tab-pane fade show" id="plan" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
+                        <?php echo $__env->make('restorants.partials.plan', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                    </div>
+                <?php endif; ?>
+
             </div>
         </div>
-        <?php echo $__env->make('layouts.footers.auth', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     </div>
+    <?php echo $__env->make('layouts.footers.auth', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+</div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('js'); ?>
@@ -109,10 +177,9 @@
         };
 
         $("input[type='checkbox'][name='days']").change(function() {
-
-
-            var hourFrom = flatpickr($('#'+ this.value + '_from'), config);
-            var hourTo = flatpickr($('#'+ this.value + '_to'), config);
+            //console.log($('#'+ this.id).attr("valuetwo"))
+            var hourFrom = flatpickr($('#'+ this.value + '_from'+"_shift"+$('#'+ this.id).attr("valuetwo")), config);
+            var hourTo = flatpickr($('#'+ this.value + '_to'+"_shift"+$('#'+ this.id).attr("valuetwo")), config);
 
             if(this.checked){
                 hourFrom.setDate(timeFormat == "AP/PM" ? formatAMPM(defaultHourFrom) : defaultHourFrom, false);
@@ -154,16 +221,26 @@
 
         //Initialize working hours
         function initializeWorkingHours(){
-            var workingHours = <?php echo json_encode($hours); ?>;
-            if(workingHours != null){
-                Object.keys(workingHours).map((key, index)=>{
-                    if(workingHours[key] != null){
-                        var hour = flatpickr($('#'+key), config);
-                        hour.setDate(workingHours[key], false);
+            var shifts = <?php echo json_encode($shifts); ?>;
+            
+            if(shifts != null){
+                Object.keys(shifts).map((shiftKey)=>{
+                    var sk=shiftKey;
+                    var workingHours=shifts[shiftKey];
+                    console.log(workingHours);
+                    Object.keys(workingHours).map((key, index)=>{
+                        //now we have the shifts
+                        if(workingHours[key] != null){
+                            
+                            var hour = flatpickr($('#'+key+'_shift'+shiftKey), config);
+                            hour.setDate(workingHours[key], false);
 
-                        var day_key = key.split('_')[0];
-                        $('#day'+day_key).attr('checked', 'checked');
-                    }
+                            var day_key = key.split('_')[0];
+                            $('#day'+day_key+'_shift'+shiftKey).attr('checked', 'checked');
+                        }
+                    });
+                    
+
                 })
             }
         }
@@ -442,8 +519,46 @@
             infoWindow.setContent(browserHasGeolocation ? 'Error: The Geolocation service failed.' : 'Error: Your browser doesn\'t support geolocation.');
             infoWindow.open(map);
         }
+
+        var form = document.getElementById('restorant-form');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            var address = $('#address').val();
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: '/restaurant/address',
+                dataType: 'json',
+                data: { address: address},
+                success:function(response){
+                    if(response.status){
+                        if(response.results.lat && response.results.lng){
+                            initializeMap(response.results.lat, response.results.lng);
+                            initializeMarker(response.results.lat, response.results.lng);
+                            changeLocation(response.results.lat, response.results.lng);
+
+                            map_location.addListener('click', function(event) {
+                                marker.setPosition(new google.maps.LatLng(event.latLng.lat(), event.latLng.lng()));
+
+                                changeLocation(event.latLng.lat(), event.latLng.lng());
+                            });
+                        }
+                    }
+                }, error: function (response) {
+                //alert(response.responseJSON.errMsg);
+                }
+            })
+
+            form.submit();
+        });
     </script>
 <?php $__env->stopSection(); ?>
-
 
 <?php echo $__env->make('layouts.app', ['title' => __('Orders')], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/ahmed/Downloads/Projects/qr-menu/resources/views/restorants/edit.blade.php ENDPATH**/ ?>

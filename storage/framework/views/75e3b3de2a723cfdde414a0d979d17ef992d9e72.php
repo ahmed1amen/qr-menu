@@ -8,7 +8,7 @@
                 </button>
             </div>
             <div class="modal-body p-0">
-                <div class="card bg-secondary shadow border-0">
+                <div class="card shadow border-0">
                     <div class="card-body px-lg-5 py-lg-5">
                         <div class="row">
                             <div class="col-sm col-md col-lg text-center" id="modalImgPart">
@@ -34,15 +34,34 @@
                                     <div class="form-group">
                                         <br />
                                         <label class="form-control-label" for="quantity"><?php echo e(__('Quantity')); ?></label>
-                                        <input type="number" name="quantity" id="quantity" class="form-control form-control-alternative" placeholder="<?php echo e(__('1')); ?>" value="1" required autofocus>
+                                        <!--<input type="number" name="quantity" id="quantity" class="form-control form-control-alternative" placeholder="1" value="1" required autofocus>-->
+                                            <input
+                                                    type="number"
+                                                    min="1"
+                                                    step="1"
+                                                    onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                                    name="quantity" 
+                                                    id="quantity" 
+                                                    class="form-control form-control-alternative" 
+                                                    placeholder="1" 
+                                                    value="1" 
+                                                    required 
+                                                    autofocus
+                                            >
                                     </div>
                                     <div class="quantity-btn">
                                         <div id="addToCart1">
                                             <button class="btn btn-primary" v-on:click='addToCartAct'><?php echo e(__('Add To Cart')); ?></button>
                                         </div>
                                     </div>
+                                   
                                 </div>
                                <?php endif; ?>
+                                <!-- Inform if closed -->
+                                <?php if(isset($openingTime)&&!empty($openingTime)): ?>
+                                        <span class="closed_time"><?php echo e(__('Opens')); ?> <?php echo e($openingTime); ?></span>
+                                    <?php endif; ?>
+                                <!-- End inform -->
                             </div>
                         </div>
                     </div>
@@ -88,10 +107,16 @@
 <div class="modal fade" id="modal-restaurant-info" tabindex="-1" role="dialog" aria-labelledby="modal-form" aria-hidden="true">
     <div class="modal-dialog modal- modal-dialog-centered modal-lg" role="document" >
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="modalRestaurantTitle"  class="modal-title notranslate"><?php echo e($restorant->name); ?></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
             <div class="modal-body p-0">
                 <div class="card">
                     <div class="card-header bg-white text-center">
-                        <img class="rounded" src="<?php echo e($restorant->icon); ?>" width="90px" height="90px"></img>
+                        <img class="rounded img-center" src="<?php echo e($restorant->icon); ?>" width="90px" height="90px"></img>
                         <h4 class="heading mt-4"><?php echo e($restorant->name); ?> &nbsp;<?php if(count($restorant->ratings)): ?><span><i class="fa fa-star" style="color: #dc3545"></i> <strong><?php echo e(number_format($restorant->averageRating, 1, '.', ',')); ?> <span class="small">/ 5 (<?php echo e(count($restorant->ratings)); ?>)</strong></span></span><?php endif; ?></h4>
                         <p class="description"><?php echo e($restorant->description); ?></p>
                         <?php if(!empty($openingTime) && !empty($closingTime)): ?>

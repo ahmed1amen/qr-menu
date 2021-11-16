@@ -82,7 +82,7 @@
         <div class="preloader bg-soft flex-column justify-content-center align-items-center">
             <div class="loader-element">
                 <span class="loader-animated-dot"></span>
-                <img src="{{ config('global.site_logo') }}" height="40" alt="logo">
+                <img src="{{ config('global.site_logo') }}" height="70" alt="logo">
             </div>
         </div>
 
@@ -139,7 +139,7 @@
         var USER_ID = '{{  auth()->user()&&auth()->user()?auth()->user()->id:"" }}';
     </script>
 
-    
+
 
     <script>
 
@@ -251,7 +251,7 @@
 
         }
 
-        
+
     }
     </script>
 

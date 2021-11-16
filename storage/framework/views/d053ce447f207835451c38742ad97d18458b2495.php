@@ -14,5 +14,8 @@
     <?php if($field['ftype']=="bool"): ?>
         <?php echo $__env->make('partials.bool',$field, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     <?php endif; ?>
+    <?php if($field['ftype']=="textarea"): ?>
+        <?php echo $__env->make('partials.textarea',$field, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php endif; ?>
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 <?php /**PATH /home/ahmed/Downloads/Projects/qr-menu/resources/views/partials/fields.blade.php ENDPATH**/ ?>

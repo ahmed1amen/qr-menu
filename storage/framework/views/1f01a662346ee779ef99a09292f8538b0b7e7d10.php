@@ -10,7 +10,7 @@
    <?php endif; ?>
    <div class="custom-control custom-checkbox">
         <input type='hidden' value='false' name="<?php echo e($id); ?>" id="<?php echo e($id); ?>hid">
-        <input value="true" <?php if(isset($value)&&$value=="true"): ?> checked <?php endif; ?>  type="checkbox" class="custom-control-input" name="<?php echo e($id); ?>" id="<?php echo e($id); ?>">
+        <input value="true" <?php if( isset($value)&&  ($value=="true" || $value.""=="1") ): ?> checked <?php endif; ?>  type="checkbox" class="custom-control-input" name="<?php echo e($id); ?>" id="<?php echo e($id); ?>">
         <label class="custom-control-label" for="<?php echo e($id); ?>"><?php echo e(__($name)); ?></label>
    </div>
    <?php if(isset($additionalInfo)): ?>
