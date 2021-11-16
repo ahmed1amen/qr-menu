@@ -3,12 +3,16 @@
 namespace App;
 
 use App\MyModel;
+use App\Traits\HasConfig;
 use willvincent\Rateable\Rateable;
+use Spatie\OpeningHours\OpeningHours;
 
 class Restorant extends MyModel
 {
     use Rateable;
+    use HasConfig;
 
+    protected $modelName="App\Restorant";
     protected $fillable = ['name', 'subdomain', 'user_id', 'lat', 'lng', 'address', 'phone', 'logo', 'description', 'city_id'];
     protected $appends = ['alias', 'logom', 'icon', 'coverm'];
     protected $imagePath = '/uploads/restorants/';
@@ -62,7 +66,7 @@ class Restorant extends MyModel
 
     public function categories()
     {
-        return $this->hasMany(\App\Categories::class, 'restorant_id', 'id')->where(['categories.active' => 1]);
+        return $this->hasMany(\App\Categories::class, 'restorant_id', 'id')->where(['categories.active' => 1])->ordered();
     }
 
     public function localmenus()
@@ -72,7 +76,55 @@ class Restorant extends MyModel
 
     public function hours()
     {
-        return $this->hasOne(\App\Hours::class, 'restorant_id', 'id');
+        return $this->hasMany(\App\Hours::class, 'restorant_id', 'id');
+    }
+
+    public function getBusinessHours(){
+
+        $creationArray=[
+            'monday'     => [],
+            'tuesday'    => [],
+            'wednesday'  => [],
+            'thursday'   => [],
+            'friday'     => [],
+            'saturday'   => [],
+            'sunday'     => [],
+            'overflow' => true
+        ];
+
+        $dayKeys=array_keys($creationArray);
+        
+        //Get all working hours
+        $workingHours=$this->hours()->get()->toArray();
+
+        foreach ($workingHours as $key => $shift) {
+            for ($i = 0; $i < 7; $i++) {
+                $from = $i.'_from';
+                $to = $i.'_to';
+                if($shift[$from]&&$shift[$to]){
+                    $toHour=date("H:i", strtotime($shift[$to]));
+                    /*if($toHour=="23:59"){
+                        $toHour=="00:00";
+                       
+                    }*/
+                    array_push($creationArray[$dayKeys[$i]],date("H:i", strtotime($shift[$from]))."-".$toHour);
+                }
+                
+            }
+        }
+        
+        //Set config based on restaurant
+        config(['app.timezone' => $this->getConfig('time_zone',config('app.timezone'))]);
+
+
+        $tz= $this->getConfig('time_zone',config('app.timezone'));
+        //dd($creationArray);
+
+
+        $mergedRanges = OpeningHours::mergeOverlappingRanges($creationArray);
+
+        //Get all working hours
+        return OpeningHours::create($mergedRanges,$tz);
     }
 
     public function tables()

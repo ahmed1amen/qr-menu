@@ -146,6 +146,9 @@ return [
         'paypal_payment_error_action'=>[
             'required'=>'The payment attempt failed because additional action is required before it can be completed'
         ],
+        'link_payment_error_action'=>[
+            'required'=>'Link based payment method not found'
+        ],
         'paypal_payment_approval_missing'=>[
             'required'=>'We where unable to obtain paypal payment link.'
         ],

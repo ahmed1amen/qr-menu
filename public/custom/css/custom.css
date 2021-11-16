@@ -2583,3 +2583,7 @@ background: #707070;
 .inset-0 {
     z-index: 999 !important; 
 }
+
+.closed_time {
+    color:#fb6340;  
+}

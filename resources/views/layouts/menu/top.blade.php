@@ -1,18 +1,10 @@
 <nav id="navbar-main" class="navbar navbar-light navbar-expand-lg fixed-top">
-
-
   <div class="container-fluid">
       <a class="navbar-brand mr-lg-5" href="/">
         <img src="{{ config('global.site_logo') }}">
       </a>
       @if( request()->get('location') )
-      <span style="z-index: 10" class="">{{ __('DELIVERING TO')}} :  <b>{{request()->get('location')}}</b></span> <a   data-toggle="modal"  href="#locationset"><span class="ml-sm-2 search description">({{ __('change')}})</span></a>
-
-
-
-
-
-
+        <span style="z-index: 10" class="">{{ __('DELIVERING TO')}} :  <b>{{request()->get('location')}}</b></span> <a   data-toggle="modal"  href="#locationset"><span class="ml-sm-2 search description">({{ __('change')}})</span></a>
       @endif
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar_global" aria-controls="navbar_global" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -45,18 +37,22 @@
               <a data-mode="popup" target="_blank" class="button nav-link nav-link-icon" href="{{ route('driver.register') }}">{{ __(config('settings.driver_link_register_title')) }}</a>
             </li>
             @endif
+          @if(!empty(config('global.facebook')))
           <li class="nav-item">
             <a class="nav-link nav-link-icon" href="{{ config('global.facebook') }}" target="_blank" data-toggle="tooltip" title="{{ __('Like us on Facebook') }}">
               <i class="fa fa-facebook-square"></i>
               <span class="nav-link-inner--text d-lg-none">{{ __('Facebook') }}</span>
             </a>
           </li>
+          @endif
+          @if(!empty(config('global.instagram')))
           <li class="nav-item">
             <a class="nav-link nav-link-icon" href="{{ config('global.instagram') }}" target="_blank" data-toggle="tooltip" title="{{ __('Follow us on Instagram') }}">
               <i class="fa fa-instagram"></i>
               <span class="nav-link-inner--text d-lg-none">{{ __('Instagram') }}</span>
             </a>
           </li>
+          @endif
           @yield('addiitional_button_1')
           @yield('addiitional_button_2')
           <ul class="navbar-nav navbar-nav-hover align-items-lg-center">

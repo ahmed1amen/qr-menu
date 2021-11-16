@@ -10,7 +10,12 @@
                 <div class="card cardWithShadow cardWithShadowAnimated shadow" data-toggle="tooltip" data-placement="top" title="{{ __('Edit this feature')}}">
                     <div class="card-body">
                         <div class="imgHolderInCard">
-                        <img class="image-in-card" src="{{ $item->image }}" width="150" height="150"/>
+                        <img 
+                            class="image-in-card" 
+                            src='{{ str_contains($item->image, "social") ? $item->image : "/uploads/restorants/".$item->image."_large.jpg" }}'
+                            width="150" 
+                            height="150"
+                        />
                         </div>
                         <h3 class="card-title">{{ $item->title }}</h3>
                         <p class="card-text">{{ $item->description }}</p>

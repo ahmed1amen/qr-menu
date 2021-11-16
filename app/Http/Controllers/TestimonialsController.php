@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class TestimonialsController extends Controller
 {
-    protected $imagePath = 'uploads/settings/';
+    protected $imagePath = 'uploads/restorants/';
 
     private function validateAccess()
     {
@@ -170,7 +170,7 @@ class TestimonialsController extends Controller
         $testimonial->subtitle = $request->subtitle;
         $testimonial->description = $request->description;
 
-        if ($request->hasFile('image_up')) {
+        if ($request->hasFile('image')) {
             $testimonial->image = $this->saveImageVersions(
                 $this->imagePath,
                 $request->image,

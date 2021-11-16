@@ -58,29 +58,11 @@
                                 </div>
                             @endif
 
-                            <!-- PayPal -->
-                            @if (config('settings.paypal_secret')&&config('settings.enable_paypal'))
-                                <div class="custom-control custom-radio mb-3">
-                                    <input name="paymentType" class="custom-control-input" id="paymentPayPal" type="radio" value="paypal" {{ config('settings.default_payment')=="paypal"?"checked":""}}>
-                                    <label class="custom-control-label" for="paymentPayPal">{{ __('Pay with PayPal') }}</label>
-                                </div>
-                            @endif
+                            <!-- Extra Payments ( Via module ) -->
+                            @foreach ($extraPayments as $extraPayment)
+                                @include($extraPayment.'::selector')
+                            @endforeach
 
-                            <!-- PAYFAST -->
-                            @if(config('settings.enable_paystack'))
-                                <div class="custom-control custom-radio mb-3">
-                                    <input name="paymentType" class="custom-control-input" id="paymentPaystack" type="radio" value="paystack" {{ config('settings.default_payment')=="paystack"?"checked":""}}>
-                                    <label class="custom-control-label" for="paymentPaystack">{{ __('Pay with Paystack') }}</label>
-                                </div>
-                            @endif
-
-                            <!-- Mollie -->
-                            @if(config('settings.enable_mollie'))
-                                <div class="custom-control custom-radio mb-3">
-                                    <input name="paymentType" class="custom-control-input" id="paymentMollie" type="radio" value="mollie" {{ config('settings.default_payment')=="mollie"?"checked":""}}>
-                                    <label class="custom-control-label" for="paymentMollie">{{ __('Pay with Mollie') }}</label>
-                                </div>
-                            @endif
 
                         @endif
 
@@ -98,20 +80,10 @@
             <!-- COD -->
             @include('cart.payments.cod')
 
-            <!-- PayPal -->
-            @if(config('settings.enable_paypal'))
-                @include('cart.payments.paypal')
-            @endif
-
-            <!-- Paystack -->
-            @if(config('settings.enable_paystack'))
-                @include('cart.payments.paystack')
-            @endif
-
-            <!-- Mollie -->
-            @if(config('settings.enable_mollie'))
-                @include('cart.payments.mollie')
-            @endif
+            <!-- Extra Payments ( Via module ) -->
+            @foreach ($extraPayments as $extraPayment)
+                @include($extraPayment.'::button')
+            @endforeach
 
             </form>
 
@@ -131,7 +103,12 @@
         <div class="text-center">
             <div class="custom-control custom-checkbox mb-3">
                 <input class="custom-control-input" id="privacypolicy" type="checkbox">
-                <label class="custom-control-label" for="privacypolicy">{{ __('I agree to the Terms and Conditions and Privacy Policy') }}</label>
+                <!--<label class="custom-control-label" for="privacypolicy">{{ __('I agree to the Terms and Conditions and Privacy Policy') }}</label>-->
+                <label class="custom-control-label" for="privacypolicy">
+                    &nbsp;&nbsp;{{__('I agree to the')}}
+                    <a href="{{config('settings.link_to_ts')}}" target="_blank" style="text-decoration: underline;">{{__('Terms of Service')}}</a> {{__('and')}}
+                    <a href="{{config('settings.link_to_pr')}}" target="_blank" style="text-decoration: underline;">{{__('Privacy Policy')}}</a>.
+                </label>
             </div>
         </div>
 

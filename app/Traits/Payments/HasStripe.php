@@ -18,7 +18,12 @@ trait HasStripe
         try {
             $total_price = (int) (($this->order->order_price + $this->order->delivery_price) * 100);
             $chargeOptions = [];
-            if (config('settings.enable_stripe_connect') && $this->vendor->user->stripe_account) {
+            
+            //Setup based on vendor
+            if(config('settings.stripe_useVendor')){
+                config(['settings.stripe_secret' => $this->vendor->getConfig('stripe_key','')]);
+                config(['settings.stripe_key' => $this->vendor->getConfig('stripe_secret','')]);
+            } else if (config('settings.enable_stripe_connect') && $this->vendor->user->stripe_account) {
                 $chargeOptions=$this->stripeConnect();
             }
 
@@ -100,7 +105,7 @@ trait HasStripe
                 'destination' => $this->vendor->user->stripe_account.'',
             ],
         ];
-        
+        return $chargeOptions;
     }
 
     

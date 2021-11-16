@@ -86,8 +86,9 @@
               <span class="nav-link-inner--text d-lg-none">Github</span>
             </a>
           </li>-->
-          <li class="nav-item d-none d-lg-block ml-lg-2">
-            <a class="btn btn-outline-white btn-icon" href="/login">
+          <!--<li class="nav-item d-none d-lg-block ml-lg-2">-->
+          <li class="nav-item d-lg-block ml-lg-2">
+            <a class="btn btn-neutral btn-icon" href="/login">
                 @auth()
                   <span class="btn-inner--icon">
                     <i class="fas fa-th-large mr-2"></i>
@@ -103,7 +104,8 @@
             </a>
           </li>
           @guest()
-          <li class="nav-item d-none d-lg-block ml-lg-2">
+          <!--<li class="nav-item d-none d-lg-block ml-lg-2">-->
+          <li class="nav-item d-lg-block ml-lg-2">
             <button type="button" class="btn btn-neutral btn-icon" data-toggle="modal" data-target="#modal-register">
               <span class="btn-inner--icon">
                 <i class="fas fa-paper-plane mr-2"></i>

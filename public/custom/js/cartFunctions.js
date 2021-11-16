@@ -275,9 +275,10 @@ function chageDeliveryCost(deliveryCost){
           $('#totalSubmitCOD').hide()
           $('#totalSubmitStripe').hide()
           $('#stripe-payment-form').hide()
-          $('#paystack-payment-form').hide()
-          $('#paypal-payment-form').hide()
-          $('#mollie-payment-form').hide()
+
+          //One for all
+          $('.payment_form_submiter').hide()
+          
 
           if($(this).val()=="cod"){
               //SHOW COD
@@ -286,13 +287,9 @@ function chageDeliveryCost(deliveryCost){
               //SHOW STRIPE
               $('#totalSubmitStripe').show();
               $('#stripe-payment-form').show()
-          }else if($(this).val()=="paystack"){
-            $('#paystack-payment-form').show()
-          }else if($(this).val()=="paypal"){
-           $('#paypal-payment-form').show()
-          }else if($(this).val()=="mollie"){
-            $('#mollie-payment-form').show()
-           }
+          }else{
+            $('#'+$(this).val()+'-payment-form').show()
+          }
       });
   }
 

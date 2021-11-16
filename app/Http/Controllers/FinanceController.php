@@ -76,7 +76,7 @@ class FinanceController extends Controller
         }
 
         $resources = $this->getResources();
-        $resources['orders'] = $resources['orders']->whereNotNull('payment_method');
+        $resources['orders'] = $resources['orders']->where('payment_status','paid')->whereNotNull('payment_method');
 
         //With downloaod
         if (isset($_GET['report'])) {
@@ -88,7 +88,7 @@ class FinanceController extends Controller
                     'restaurant_id'=>$order->restorant_id,
                     'created'=>$order->created_at,
                     'last_status'=>$order->status->pluck('alias')->last(),
-                    'client_name'=>$order->client->name,
+                    'client_name'=>$order->client?$order->client->name:"",
                     'client_id'=>$order->client_id,
                     'address'=>$order->address ? $order->address->address : '',
                     'address_id'=>$order->address_id,
@@ -174,7 +174,7 @@ class FinanceController extends Controller
 
         $resources = $this->getResources();
 
-        $resources['orders'] = $resources['orders']; //->whereNotNull('payment_method');
+        $resources['orders'] = $resources['orders']->whereNotNull('payment_method')->where('payment_status','paid');
 
         //With downloaod
         if (isset($_GET['report'])) {

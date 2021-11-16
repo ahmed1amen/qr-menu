@@ -4,24 +4,25 @@
 @endsection
 
 @section('content')
-    @include('layouts.headers.cards')
+    @if(!auth()->user()->hasRole('driver'))
+        @include('layouts.headers.cards.general')
+    @else
+        @include('layouts.headers.cards.driver')
+    @endif
 
     @if(auth()->user()->hasRole('admin'))
-    @if (config('app.isft'))
-    <div class="container-fluid mt--7 mb-8">
-        <div class="row">
-            <div class="col-xl-12">
-                @include('drivers.map')
+        @if (config('app.isft'))
+        <div class="container-fluid mt--7 mb-8">
+            <div class="row">
+                <div class="col-xl-12">
+                    @include('drivers.map')
+                </div>
             </div>
-            
-        </div>
-    </div>  
+        </div>  
+        @endif
     @endif
-    
-    @endif
-            
 
-
+    @if(!auth()->user()->hasRole('driver'))
     <div class="container-fluid mt--7">
         <div class="row">
             <div class="col-xl-8 mb-5 mb-xl-0">
@@ -81,10 +82,9 @@
                 </div>
             </div>
         </div>
-
-
         @include('layouts.footers.auth')
     </div>
+    @endif
 @endsection
 @section('topjs')
     <script src="{{ asset('argon') }}/vendor/chart.js/dist/Chart.min.js"></script>

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
+use Akaunting\Module\Facade as Module;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -94,6 +95,18 @@ class AppServiceProvider extends ServiceProvider
     
                 ],
             ]]);
+
+            //Setup subscribe methods
+            $subscriptionsModules=[];
+            $subscriptionsModules["Stripe"]="Stripe"; // Stripe is default
+            $subscriptionsModules["Local"]="Local bank transfers"; // Stripe is default
+
+            foreach (Module::all() as $key => $module) {
+                if($module->get('isSubscriptionModule')){
+                    $subscriptionsModules[$module->get('name')]=$module->get('name');
+                }
+            }
+            config(['config.env.1.fields.0.data' => $subscriptionsModules]); 
         } catch (\Exception $e) {
             //return redirect()->route('LaravelInstaller::welcome');
         }

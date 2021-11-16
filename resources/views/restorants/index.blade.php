@@ -64,24 +64,20 @@
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-
-                                                        <a class="dropdown-item" href="{{ route('admin.restaurants.edit', $restorant) }}">{{ __('Edit') }}</a>
-                                                        <a class="dropdown-item" href="{{ route('admin.restaurants.loginas', $restorant) }}">{{ __('Login as') }}</a>
-                                                        <form action="{{ route('admin.restaurants.destroy', $restorant) }}" method="post">
-                                                            @csrf
-                                                            @method('delete')
-                                                            @if($restorant->active == 0)
-                                                                <a class="dropdown-item" href="{{ route('restaurant.activate', $restorant) }}">{{ __('Activate') }}</a>
-                                                            @else
+                                                    <a class="dropdown-item" href="{{ route('admin.restaurants.edit', $restorant) }}">{{ __('Edit') }}</a>
+                                                    <a class="dropdown-item" href="{{ route('admin.restaurants.loginas', $restorant) }}">{{ __('Login as') }}</a>
+                                                    <form action="{{ route('admin.restaurants.destroy', $restorant) }}" method="post">
+                                                        @csrf
+                                                        @method('delete')
+                                                        @if($restorant->active == 0)
+                                                            <a class="dropdown-item" href="{{ route('restaurant.activate', $restorant) }}">{{ __('Activate') }}</a>
+                                                        @else
                                                             <button type="button" class="dropdown-item" onclick="confirm('{{ __("Are you sure you want to deactivate this restaurant?") }}') ? this.parentElement.submit() : ''">
                                                                 {{ __('Deactivate') }}
                                                             </button>
-                                                            @endif
-                                                            
-                                                            
-                                                        </form>
+                                                        @endif
+                                                    </form>
                                                     <a class="dropdown-item warning red" onclick="return confirm('Are you sure you want to delete this Restaurant from Database? This will aslo delete all data related to it. This is irreversible step.')"  href="{{ route('admin.restaurant.remove',$restorant)}}">{{ __('Delete') }}</a>
-
                                                 </div>
                                             </div>
                                         </td>

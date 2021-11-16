@@ -12,7 +12,7 @@
                 <div class="testimonials-item-author">
                   <div class="testimonials-item-author-image-container">
                     <img class="avatar rounded-circle"
-                      src="{{ $item->image }}"
+                      src='{{ str_contains($item->image, "social") ? $item->image : "/uploads/restorants/".$item->image."_large.jpg" }}'
                       class="testimonials-item-author-image">
                   </div>
                   <div class="testimonials-item-author-info">

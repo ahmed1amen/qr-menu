@@ -23,7 +23,7 @@ class ItemsImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         $category = Categories::where(['name' => $row['category'], 'restorant_id' => $this->restorant->id])->first();
-
+        
         if ($category != null) {
             
             $item = Items::where(['name' => $row['name'], 'category_id' => $category->id])->first();

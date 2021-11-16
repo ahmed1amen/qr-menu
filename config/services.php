@@ -45,11 +45,5 @@ return [
     'onesignal' => [
         'app_id' => env('ONESIGNAL_APP_ID', ''),
         'rest_api_key' => env('ONESIGNAL_REST_API_KEY', ''),
-    ],
-
-    'paypal' => [
-        'client_id' => env('PAYPAL_CLIENT_ID', ''),
-        'secret' => env('PAYPAL_SECRET', ''),
-    ],
-
+    ]
 ];

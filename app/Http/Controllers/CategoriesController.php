@@ -96,8 +96,13 @@ class CategoriesController extends Controller
         /*foreach($category->items as $item){
             $item->delete();
         }*/
-        $category->active = 0;
-        $category->save();
+        //$category->active = 0;
+        //$category->save();
+        $category->delete();
+        //Delete items
+        //Delete extras
+        //Delete Options
+        //Deletee Options
 
         return redirect()->route('items.index')->withStatus(__('Category successfully deleted.'));
     }

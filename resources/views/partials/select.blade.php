@@ -1,5 +1,11 @@
 <div id="form-group-{{ $id }}" class="form-group {{ $errors->has($id) ? ' has-danger' : '' }}  @isset($class) {{$class}} @endisset">
 
+    @isset($separator)
+    <br />
+    <h4 class="display-4 mb-0">{{ __($separator) }}</h4>
+    <hr />
+@endisset
+
     <label class="form-control-label">{{ __($name) }}</label><br />
 
     <select class="form-control form-control-alternative   @isset($classselect) {{$classselect}} @endisset"  name="{{ $id }}" id="{{  $id }}">

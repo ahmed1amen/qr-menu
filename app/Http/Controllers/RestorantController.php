@@ -17,6 +17,8 @@ use App\Plans;
 use App\Restorant;
 use App\Tables;
 use App\User;
+use App\Traits\Fields;
+use App\Traits\Modules;
 use Artisan;
 use Carbon\Carbon;
 use DB;
@@ -31,9 +33,13 @@ use Illuminate\Support\Str;
 use Image;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
+use Spatie\Geocoder\Geocoder;
 
 class RestorantController extends Controller
 {
+    use Fields;
+    use Modules;
+    
     protected $imagePath = 'uploads/restorants/';
 
     /**
@@ -129,6 +135,8 @@ class RestorantController extends Controller
         //$restaurant->logo = "";
         $restaurant->save();
 
+        $restaurant->setConfig('disable_callwaiter', 0);
+
         //Send email to the user/owner
         $owner->notify(new RestaurantCreated($generatedPassword, $restaurant, $owner));
 
@@ -146,6 +154,18 @@ class RestorantController extends Controller
         //
     }
 
+
+    public function addnewshift(Restorant $restaurant){
+        if (auth()->user()->id == $restaurant->user_id || auth()->user()->hasRole('admin')) {
+            $hours = new Hours();
+            $hours->restorant_id = $restaurant->id;
+            $hours->save();
+            return redirect()->route('admin.restaurants.edit', ['restaurant' => $restaurant->id])->withStatus(__('New shift added!'));
+        }else{
+            abort(404);
+        }
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -154,6 +174,8 @@ class RestorantController extends Controller
      */
     public function edit(Restorant $restaurant)
     {
+        //dd($restaurant->getBusinessHours()->isOpen());
+
         //Days of the week
         $timestamp = strtotime('next Monday');
         for ($i = 0; $i < 7; $i++) {
@@ -162,7 +184,7 @@ class RestorantController extends Controller
         }
 
         //Generate days columns
-        $hoursRange = [];
+        $hoursRange = ['id'];
         for ($i = 0; $i < 7; $i++) {
             $from = $i.'_from';
             $to = $i.'_to';
@@ -171,7 +193,9 @@ class RestorantController extends Controller
             array_push($hoursRange, $to);
         }
 
-        $hours = Hours::where(['restorant_id' => $restaurant->id])->get($hoursRange)->first();
+        
+
+        
 
         //Languages
         $available_languages=$restaurant->localMenus()->get()->pluck('languageName','id');
@@ -189,22 +213,67 @@ class RestorantController extends Controller
             $currency=config('settings.cashier_currency');
         }
 
+        //App fields
+        $rawFields=$this->vendorFields($restaurant->getAllConfigs());
+        //Stripe fields
+        if(config('settings.stripe_useVendor')){
+            array_push($rawFields,[
+                "separator"=>"Stripe configuration",
+                "title"=> "Enable Stripe for payments when ordering",
+                "key"=> "stripe_enable",
+                "ftype"=> "bool",
+                "value"=>$restaurant->getConfig('stripe_enable',"false"),
+                "onlyin"=>"qrsaas"
+            ],[
+                "title"=>"Stripe key", 
+                "key"=>"stripe_key", 
+                "value"=>$restaurant->getConfig('stripe_key',""),
+                "onlyin"=>"qrsaas"
+            ],
+            [
+                "title"=>"Stripe secret", 
+                "key"=>"stripe_secret", 
+                "value"=>$restaurant->getConfig('stripe_secret',""),
+                "onlyin"=>"qrsaas"
+            ]);
+        }
+  
        
+        $appFields=$this->convertJSONToFields($rawFields);
+
+        $shiftsData = Hours::where(['restorant_id' => $restaurant->id])->get($hoursRange);
+        $shifts=[];
+        foreach ($shiftsData as $key => $hours) {
+            $shiftId=$hours->id;
+            $workingHours=$hours->toArray();
+            unset($workingHours['id']);
+            $shifts[$shiftId]=$workingHours;
+        }
 
         if (auth()->user()->id == $restaurant->user_id || auth()->user()->hasRole('admin')) {
             //return view('restorants.edit', compact('restorant'));
             return view('restorants.edit', [
                 'restorant' => $restaurant,
-                'days' => $days,
+                'shifts'=>$shifts,
+                'days'=>$days,
                 'cities'=> City::get()->pluck('name', 'id'),
                 'plans'=>Plans::get()->pluck('name', 'id'),
                 'available_languages'=> $available_languages,
                 'default_language'=>$default_language,
                 'currency'=>$currency,
-                'hours' => $hours, ]);
+                'appFields'=>$appFields
+                ]);
         }
 
         return redirect()->route('home')->withStatus(__('No Access'));
+    }
+
+    public function updateApps(Request $request, Restorant $restaurant){
+         //Update custom fields
+         if($request->has('custom')){
+            $restaurant->setMultipleConfig($request->custom);
+        }
+        return redirect()->route('admin.restaurants.edit', ['restaurant' => $restaurant->id])->withStatus(__('Restaurant successfully updated.'));
     }
 
     /**
@@ -222,8 +291,12 @@ class RestorantController extends Controller
         
         $restaurant->description = strip_tags($request->description);
         $restaurant->minimum = strip_tags($request->minimum);
-        $restaurant->fee = $request->fee ? $request->fee : 0;
-        $restaurant->static_fee = $request->static_fee ? $request->static_fee : 0;
+
+        if($request->fee){
+            $restaurant->fee = $request->fee;
+            $restaurant->static_fee = $request->static_fee;
+        }
+    
         $restaurant->subdomain = $this->makeAlias(strip_tags($request->name));
         $restaurant->is_featured = $request->is_featured != null ? 1 : 0;
         $restaurant->can_pickup = $request->can_pickup == 'true' ? 1 : 0;
@@ -231,9 +304,10 @@ class RestorantController extends Controller
         $restaurant->self_deliver = $request->self_deliver == 'true' ? 1 : 0;
         $restaurant->free_deliver = $request->free_deliver == 'true' ? 1 : 0;
 
-        if($request->has('mollie_payment_key')){
-            $restaurant->mollie_payment_key = $request->mollie_payment_key;
+        if($request->has('disable_callwaiter')){
+            $restaurant->setConfig('disable_callwaiter',$request->disable_callwaiter == 'true' ? 1 : 0);
         }
+
         if($request->has('payment_info')){
             $restaurant->payment_info = $request->payment_info;
         }
@@ -295,6 +369,12 @@ class RestorantController extends Controller
 
         $restaurant->update();
 
+
+        //Update custom fields
+        if($request->has('custom')){
+            $restaurant->setMultipleConfig($request->custom);
+        }
+
         if (auth()->user()->hasRole('admin')) {
             return redirect()->route('admin.restaurants.edit', ['restaurant' => $restaurant->id])->withStatus(__('Restaurant successfully updated.'));
         } else {
@@ -339,6 +419,19 @@ class RestorantController extends Controller
         }
 
         return redirect()->route('admin.restaurants.index')->withStatus(__('Restaurant successfully removed from database.'));
+    }
+
+    public function getCoordinatesForAddress(Request $request)
+    {
+        $client = new \GuzzleHttp\Client();
+        $geocoder = new Geocoder($client);
+        $geocoder->setApiKey(config('geocoder.key'));
+
+        $geoResults = $geocoder->getCoordinatesForAddress($request->address);
+
+        $data = ['status'=>true, 'results'=>$geoResults];
+
+        return response()->json($data);
     }
 
     public function updateLocation(Restorant $restaurant, Request $request)
@@ -399,42 +492,26 @@ class RestorantController extends Controller
 
     public function workingHours(Request $request)
     {
-        $hours = Hours::where(['restorant_id' => $request->rid])->first();
+        $hours = Hours::where(['id' => $request->shift_id])->first();
 
-        if ($hours == null) {
-            $hours = new Hours();
-            $hours->restorant_id = $request->rid;
-            $hours->{'0_from'} = $request->{'0_from'} ?? null;
-            $hours->{'0_to'} = $request->{'0_to'} ?? null;
-            $hours->{'1_from'} = $request->{'1_from'} ?? null;
-            $hours->{'1_to'} = $request->{'1_to'} ?? null;
-            $hours->{'2_from'} = $request->{'2_from'} ?? null;
-            $hours->{'2_to'} = $request->{'2_to'} ?? null;
-            $hours->{'3_from'} = $request->{'3_from'} ?? null;
-            $hours->{'3_to'} = $request->{'3_to'} ?? null;
-            $hours->{'4_from'} = $request->{'4_from'} ?? null;
-            $hours->{'4_to'} = $request->{'4_to'} ?? null;
-            $hours->{'5_from'} = $request->{'5_from'} ?? null;
-            $hours->{'5_to'} = $request->{'5_to'} ?? null;
-            $hours->{'6_from'} = $request->{'6_from'} ?? null;
-            $hours->{'6_to'} = $request->{'6_to'} ?? null;
-            $hours->save();
-        }
 
-        $hours->{'0_from'} = $request->{'0_from'} ?? null;
-        $hours->{'0_to'} = $request->{'0_to'} ?? null;
-        $hours->{'1_from'} = $request->{'1_from'} ?? null;
-        $hours->{'1_to'} = $request->{'1_to'} ?? null;
-        $hours->{'2_from'} = $request->{'2_from'} ?? null;
-        $hours->{'2_to'} = $request->{'2_to'} ?? null;
-        $hours->{'3_from'} = $request->{'3_from'} ?? null;
-        $hours->{'3_to'} = $request->{'3_to'} ?? null;
-        $hours->{'4_from'} = $request->{'4_from'} ?? null;
-        $hours->{'4_to'} = $request->{'4_to'} ?? null;
-        $hours->{'5_from'} = $request->{'5_from'} ?? null;
-        $hours->{'5_to'} = $request->{'5_to'} ?? null;
-        $hours->{'6_from'} = $request->{'6_from'} ?? null;
-        $hours->{'6_to'} = $request->{'6_to'} ?? null;
+        
+        $shift="_shift".$request->shift_id;
+        
+        $hours->{'0_from'} = $request->{'0_from'.$shift} ?? null;
+        $hours->{'0_to'} = $request->{'0_to'.$shift} ?? null;
+        $hours->{'1_from'} = $request->{'1_from'.$shift} ?? null;
+        $hours->{'1_to'} = $request->{'1_to'.$shift} ?? null;
+        $hours->{'2_from'} = $request->{'2_from'.$shift} ?? null;
+        $hours->{'2_to'} = $request->{'2_to'.$shift} ?? null;
+        $hours->{'3_from'} = $request->{'3_from'.$shift} ?? null;
+        $hours->{'3_to'} = $request->{'3_to'.$shift} ?? null;
+        $hours->{'4_from'} = $request->{'4_from'.$shift} ?? null;
+        $hours->{'4_to'} = $request->{'4_to'.$shift} ?? null;
+        $hours->{'5_from'} = $request->{'5_from'.$shift} ?? null;
+        $hours->{'5_to'} = $request->{'5_to'.$shift} ?? null;
+        $hours->{'6_from'} = $request->{'6_from'.$shift} ?? null;
+        $hours->{'6_to'} = $request->{'6_to'.$shift} ?? null;
         $hours->update();
 
         return redirect()->route('admin.restaurants.edit', ['restaurant' => $request->rid])->withStatus(__('Working hours successfully updated!'));
@@ -494,6 +571,8 @@ class RestorantController extends Controller
         $restaurant->subdomain = null;
         //$restaurant->logo = "";
         $restaurant->save();
+
+        $restaurant->setConfig('disable_callwaiter', 0);
 
         if (config('app.isqrsaas') || config('settings.directly_approve_resstaurant')) {
             //QR SaaS - or directly approve
@@ -567,7 +646,7 @@ class RestorantController extends Controller
         if ($request->table_id) {
             $table = Tables::where('id', $request->table_id)->get()->first();
 
-            if (config('settings.enable_call_waiter') && $CAN_USE_PUSHER) {
+            if (!$table->restaurant->getConfig('disable_callwaiter', 0) && $CAN_USE_PUSHER) {
                 $msg = __('notifications_notification_callwaiter');
 
                 event(new CallWaiter($table, $msg));
@@ -604,7 +683,7 @@ class RestorantController extends Controller
         $url = 'https://api.qrserver.com/v1/create-qr-code/?size=512x512&data='.$url;
         $filename = 'qr.jpg';
         $tempImage = tempnam(sys_get_temp_dir(), $filename);
-        copy($url, $tempImage);
+        @copy($url, $tempImage);
 
         return response()->download($tempImage, $filename);
     }

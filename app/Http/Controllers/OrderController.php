@@ -20,7 +20,9 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use willvincent\Rateable\Rating;
 use App\Services\ConfChanger;
-
+use Akaunting\Module\Facade as Module;
+use App\Events\OrderAcceptedByAdmin;
+use App\Events\OrderAcceptedByVendor;
 
 class OrderController extends Controller
 {
@@ -186,6 +188,7 @@ class OrderController extends Controller
         foreach (Cart::getContent() as $key => $item) {
             $vendor_id = $item->attributes->restorant_id;
         }
+        $restorant = Restorant::findOrFail($vendor_id);
 
         //Organize the item
         $items=[];
@@ -209,6 +212,12 @@ class OrderController extends Controller
             $stripe_token=$request->stripePaymentId;
         }
 
+        //Custom fields
+        $customFields=[];
+        if($request->has('custom')){
+            $customFields=$request->custom;
+        }
+
         //DELIVERY METHOD
         //Default - pickup - since available everywhere
         $delivery_method="pickup";
@@ -216,12 +225,16 @@ class OrderController extends Controller
         //Delivery method - deliveryType - ft
         if($request->has('deliveryType')){
             $delivery_method=$request->deliveryType;
+        }else if($restorant->can_pickup == 0 && $restorant->can_deliver == 1){
+            $delivery_method="delivery";
         }
 
         //Delivery method  - dineType - qr
         if($request->has('dineType')){
             $delivery_method=$request->dineType;
         }
+
+
 
         //In case it is QR, and there is no dineInType, and pickup is diabled, it is dine in
         if(config('app.isqrsaas')&&!$request->has('dineType')&&!config('settings.is_whatsapp_ordering_mode')){
@@ -255,8 +268,11 @@ class OrderController extends Controller
             "comment"=>$request->comment,
             "stripe_token"=>$stripe_token,
             "dinein_table_id"=>$table_id,
-            "phone"=>$phone
+            "phone"=>$phone,
+            "customFields"=>$customFields
         ];
+
+        
 
         return new Request($requestData);
     }
@@ -275,7 +291,21 @@ class OrderController extends Controller
         $vendorHasOwnPayment=null;
         if(config('settings.social_mode')){
             //Find the vendor, and check if he has payment
-            $vendorHasOwnPayment=strlen(Restorant::findOrFail($mobileLikeRequest->vendor_id)->mollie_payment_key)>5?"mollie":null;
+        
+            $vendor=Restorant::findOrFail($mobileLikeRequest->vendor_id);
+
+            //Payment methods
+            foreach (Module::all() as $key => $module) {
+                if($module->get('isPaymentModule')){
+                    if($vendor->getConfig($module->get('alias')."_enable","false")=="true"){
+                        $vendorHasOwnPayment=$module->get('alias');
+                    }
+                }
+            }
+
+            if($vendorHasOwnPayment==null){
+                $hasPayment=false;
+            }
         }
 
         //Repo Holder
@@ -323,6 +353,8 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
+        //Do we have pdf invoice
+        $pdFInvoice=Module::has('pdf-invoice');
 
         //Change currency
         ConfChanger::switchCurrency($order->restorant);
@@ -331,12 +363,23 @@ class OrderController extends Controller
         ConfChanger::switchLanguage($order->restorant);
 
         $drivers = User::role('driver')->get();
+        $driversData = [];
+        foreach ($drivers as $key => $driver) {
+            $driversData[$driver->id] = $driver->name;
+        }
 
         if (auth()->user()->hasRole('client') && auth()->user()->id == $order->client_id ||
             auth()->user()->hasRole('owner') && auth()->user()->id == $order->restorant->user->id ||
                 auth()->user()->hasRole('driver') && auth()->user()->id == $order->driver_id || auth()->user()->hasRole('admin')
             ) {
-            return view('orders.show', ['order'=>$order, 'statuses'=>Status::pluck('name', 'id'), 'drivers'=>$drivers]);
+            return view('orders.show', [
+                'order'=>$order,
+                'pdFInvoice'=>$pdFInvoice,
+                'custom_data'=>$order->getAllConfigs(),
+                'statuses'=>Status::pluck('name', 'id'), 
+                'drivers'=>$drivers,
+                'fields'=>[['class'=>'col-12', 'classselect'=>'noselecttwo', 'ftype'=>'select', 'name'=>'Driver', 'id'=>'driver', 'placeholder'=>'Assign Driver', 'data'=>$driversData, 'required'=>true]],
+            ]);
         } else {
             return redirect()->route('orders.index')->withStatus(__('No Access.'));
         }
@@ -516,7 +559,6 @@ class OrderController extends Controller
 
     public function autoAssignToDriver(Order $order)
     {
-
         //The restaurant id
         $restaurant_id = $order->restorant_id;
 
@@ -603,6 +645,8 @@ class OrderController extends Controller
             'picked_up'=>['driver', 'owner'],
             'delivered'=>['driver', 'owner'],
             'closed'=>'owner',
+            'accepted_by_driver'=>['driver'],
+            'rejected_by_driver'=>['driver']
         ];
 
         if (! auth()->user()->hasRole($rolesNeeded[$alias])) {
@@ -671,6 +715,16 @@ class OrderController extends Controller
 
         //$order->status()->attach([$status->id => ['comment'=>"",'user_id' => auth()->user()->id]]);
         $order->status()->attach([$status_id_to_attach => ['comment'=>'', 'user_id' => auth()->user()->id]]);
+
+
+        //Dispatch event
+        if($alias=="accepted_by_restaurant"){
+            OrderAcceptedByVendor::dispatch($order);
+        }
+        if($alias=="accepted_by_admin"){
+            OrderAcceptedByAdmin::dispatch($order);
+        }
+
 
         return redirect()->route('orders.index')->withStatus(__('Order status succesfully changed.'));
     }

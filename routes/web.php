@@ -29,8 +29,6 @@ Route::get('/profiles', 'Auth\Auth0IndexController@profile' )->name( 'profiles' 
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::post('/paddle', 'PlansController@paddle')->name('paddle');
-
 //Route::group(['middleware' => 'auth'], function () {
 Route::group(['middleware' => ['auth']], function () {
     Route::resource('user', 'UserController', ['except' => ['show']]);
@@ -40,6 +38,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('syncV1UsersToAuth0', 'SettingsController@syncV1UsersToAuth0')->name('syncV1UsersToAuth0');
         Route::get('dontsyncV1UsersToAuth0', 'SettingsController@dontsyncV1UsersToAuth0')->name('dontsyncV1UsersToAuth0');
         Route::resource('restaurants', 'RestorantController');
+        Route::put('restaurants_app_update/{restaurant}', 'RestorantController@updateApps')->name('restaurant.updateApps');
+
+        Route::get('restaurants_add_new_shift/{restaurant}', 'RestorantController@addnewshift')->name('restaurant.addshift');
 
         Route::get('restaurants/loginas/{restaurant}', 'RestorantController@loginas')->name('restaurants.loginas');
 
@@ -112,6 +113,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/import/restaurants', 'RestorantController@import')->name('import.restaurants');
     Route::get('/restaurant/{restaurant}/activate', 'RestorantController@activateRestaurant')->name('restaurant.activate');
     Route::post('/restaurant/workinghours', 'RestorantController@workingHours')->name('restaurant.workinghours');
+    Route::post('/restaurant/address','RestorantController@getCoordinatesForAddress')->name('restaurant.coordinatesForAddress');
 
     Route::prefix('finances')->name('finances.')->group(function () {
         Route::get('admin', 'FinanceController@adminFinances')->name('admin');
@@ -126,6 +128,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/reviewsdelete/{rating}', 'ReviewsController@destroy')->name('reviews.destroyget');
 
     Route::resource('drivers', 'DriverController');
+    Route::get('/driver/{driver}/activate', 'DriverController@activateDriver')->name('driver.activate');
+
     Route::resource('clients', 'ClientController');
     Route::resource('orders', 'OrderController');
     Route::post('/rating/{order}', 'OrderController@rateOrder')->name('rate.order');
@@ -140,6 +144,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/updatestatus/{alias}/{order}', ['as' => 'update.status', 'uses'=>'OrderController@updateStatus']);
 
     Route::resource('settings', 'SettingsController');
+    Route::get('apps','AppsController@index')->name('apps.index');
+    Route::post('apps','AppsController@store')->name('apps.store');
+    Route::get('cloudupdate', 'SettingsController@cloudupdate')->name('settings.cloudupdate');
     Route::get('systemstatus', 'SettingsController@systemstatus')->name('systemstatus');
     Route::get('translatemenu', 'SettingsController@translateMenu')->name('translatemenu');
 
@@ -149,6 +156,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::resource('items', 'ItemsController');
     Route::prefix('items')->name('items.')->group(function () {
+        Route::get('reorder/{up}', 'ItemsController@reorderCategories')->name('reorder');
         Route::get('list/{restorant}', 'ItemsController@indexAdmin')->name('admin');
 
         // Options
@@ -187,7 +195,6 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('ckeditor/image_upload', 'CKEditorController@upload')->name('upload');
     Route::get('/payment', 'PaymentController@view')->name('payment.view');
-    Route::post('/make/payment', 'PaymentController@payment')->name('make.payment');
 
     if (config('app.isft')) {
         Route::get('/cart-checkout', 'CartController@cart')->name('cart.checkout');
@@ -196,18 +203,13 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('plans', 'PlansController');
     Route::get('/plan', 'PlansController@current')->name('plans.current');
     Route::post('/subscribe/plan', 'PlansController@subscribe')->name('plans.subscribe');
+    Route::get('/subscribe/plan3d/{plan}/{user}', 'PlansController@subscribe3dStripe')->name('plans.subscribe_3d_stripe');
     Route::post('/subscribe/update', 'PlansController@adminupdate')->name('update.plan');
 
     Route::get('qr', 'QRController@index')->name('qr');
 
     Route::post('/pay', 'PaymentController@redirectToGateway')->name('pay');
     Route::get('/payment/callback', 'PaymentController@handleGatewayCallback');
-
-    Route::get('/execute-payment-pp', 'PaymentController@executePaymentPayPal')->name('execute-payment');
-    
-
-    Route::post('/paypal/subscribe', 'PlansController@subscribePayPal')->name('subscribe-paypal');
-    Route::post('subscription/actions', 'PlansController@updateCancelSubscription')->name('subscription.actions');
 
     Route::get('/share/menu', 'RestorantController@shareMenu')->name('share.menu');
     Route::get('/downloadqr', 'RestorantController@downloadQR')->name('download.menu');
@@ -241,7 +243,7 @@ Route::get('/login/google/redirect', 'Auth\LoginController@googleHandleProviderC
 Route::get('/login/facebook', 'Auth\LoginController@facebookRedirectToProvider')->name('facebook.login');
 Route::get('/login/facebook/redirect', 'Auth\LoginController@facebookHandleProviderCallback');
 
-Route::get('/new/restaurant/register', 'RestorantController@showRegisterRestaurant')->name('newrestaurant.register');
+Route::get('/new/'.config('settings.url_route').'/register', 'RestorantController@showRegisterRestaurant')->name('newrestaurant.register');
 Route::post('/new/restaurant/register/store', 'RestorantController@storeRegisterRestaurant')->name('newrestaurant.store');
 
 Route::get('phone/verify', 'PhoneVerificationController@show')->name('phoneverification.notice');
@@ -272,8 +274,6 @@ Route::post('call/waiter/', 'RestorantController@callWaiter')->name('call.waiter
 //Register driver
 Route::get('new/driver/register', 'DriverController@register')->name('driver.register');
 Route::post('new/driver/register/store', 'DriverController@registerStore')->name('driver.register.store');
-
-Route::post('webhooks/mollie', 'PaymentController@handleWebhookNotification')->name('webhooks.mollie');
 
 Route::get('order/success', 'OrderController@success')->name('order.success');
 

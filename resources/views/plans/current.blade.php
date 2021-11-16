@@ -18,6 +18,12 @@
                         </button>
                     </div>
                 @endif
+
+                 <!-- Errors display -->
+                @if (session('error'))
+                 <div role="alert" class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+
             </div>
 
             @foreach ($plans as $plan)
@@ -60,22 +66,14 @@
                         @if($currentPlan&&$plan['id'].""==$currentPlan->id."")
                             <a href="" class="btn btn-primary disabled">{{__('Current Plan')}}</a>
                         @else
-                            @if(strlen($plan['paddle_id'])>2&&config('settings.subscription_processor')=='Paddle')
-                                <a href="javascript:openCheckout({{ $plan['paddle_id'] }})" class="btn btn-primary">{{__('Switch to ').$plan['name']}}</a>
-                            @endif
+
+                        <!-- Button holder -->
+                        <div id="button-container-plan-{{$plan['id']}}"></div>
+
+                            
+                            
                             @if(strlen($plan['stripe_id'])>2&&config('settings.subscription_processor')=='Stripe')
                                 <a href="javascript:showStripeCheckout({{ $plan['id'] }} , '{{ $plan['name'] }}')" class="btn btn-primary">{{__('Switch to ').$plan['name']}}</a>
-                            @endif
-                            @if(strlen($plan['paypal_id'])>2&&config('settings.subscription_processor')=='PayPal')
-                                <div <?php echo 'id="paypal-button-container-'.$plan['paypal_id'].'"'; ?> ></div>
-                            @endif
-
-                            @if(strlen($plan['mollie_id'])>2&&config('settings.subscription_processor')=='Mollie')
-                                <a href="javascript:openMollieCheckout({{ $plan['id'] }})" class="btn btn-primary">{{__('Switch to ').$plan['name']}}</a>
-                            @endif
-
-                            @if(strlen($plan['paystack_id'])>2&&config('settings.subscription_processor')=='Paystack')
-                                <a href="javascript:openPaystackCheckout({{ $plan['id'] }})" class="btn btn-primary">{{__('Switch to ').$plan['name']}}</a>
                             @endif
 
                             @if($plan['price']>0&&(config('settings.subscription_processor')=='Local'||config('settings.subscription_processor')=='local'))
@@ -106,6 +104,10 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <!-- END TO BE REMOVED -->
+
+                            
                         @endif
                     </div>
                 </div>
@@ -116,6 +118,7 @@
         </div>
 
 
+        <!-- Stripe Subscription form -->
         <div class="row mt-4" id="stripe-payment-form-holder" style="display: none">
             <div class="col-md-12">
                 <div class="card bg-secondary shadow">
@@ -171,44 +174,42 @@
 
         @if($currentPlan)
 
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card bg-secondary shadow">
-                    <div class="card-header border-0">
-                        <div class="row align-items-center">
-                            <div class="col-8">
-                                <h3 class="mb-0">{{ __('Your current plan') }}</h3>
+            <!-- Show Current form actions -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card bg-secondary shadow">
+                        <div class="card-header border-0">
+                            <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h3 class="mb-0">{{ __('Your current plan') }}</h3>
+                                </div>
+
                             </div>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ __('You are currently using the ').$currentPlan->name." ".__('plan') }}<p>
+                                @if(strlen(auth()->user()->plan_status)>0)
+                                <p>{{ __('Status').": "}} <strong>{{ auth()->user()->plan_status }}</strong><p>
+                                @endif
+                        </div>
+                        @if(strlen(auth()->user()->cancel_url)>5 && ( config('settings.subscription_processor') == "Stripe"))
+                            <div class="card-footer py-4">
+                                <a href="{{ auth()->user()->update_url }}" target="_blank" class="btn btn-warning">{{__('Update subscription')}}</a>
+                                <a href="{{ auth()->user()->cancel_url }}" target="_blank" class="btn btn-danger">{{__('Cancel subscription')}}</a>
+                            </div>
+                        @endif
 
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <p>{{ __('You are currently using the ').$currentPlan->name." ".__('plan') }}<p>
-                            @if(strlen(auth()->user()->plan_status)>0)
-                            <p>{{ __('Status').": "}} <strong>{{ auth()->user()->plan_status }}</strong><p>
-                            @endif
-                    </div>
-                    @if(strlen(auth()->user()->cancel_url)>5 && config('settings.subscription_processor') != "PayPal")
-                        <div class="card-footer py-4">
-                            <a href="{{ auth()->user()->update_url }}" target="_blank" class="btn btn-warning">{{__('Update subscription')}}</a>
-                            <a href="{{ auth()->user()->cancel_url }}" target="_blank" class="btn btn-danger">{{__('Cancel subscription')}}</a>
-                        </div>
-                    @elseif(config('settings.subscription_processor') == "PayPal"&&false)
-                        <div class="card-footer py-4">
-                            <form id="form-subscription-actions" action="{{ route('subscription.actions') }}" method="post" onsubmit="return false;">
-                                @csrf
-                                <input type="hidden" id="action" name="action" value=""/>
+                        @if (!(config('settings.subscription_processor') == "Stripe" || config('settings.subscription_processor') == "Local"))
+                            <!-- Payment processor actions -->
+                            @include($subscription_processor.'-subscribe::actions')
+                        @endif
 
-                                <button type="button" class="btn btn-warning btn-sub-actions" data-action="update">{{__('Update subscription')}}</button>
-                                <button type="button" class="btn btn-danger btn-sub-actions" data-action="cancel">{{__('Cancel subscription')}}</button>
-                            </form>
-                        </div>
-                    @endif
+                        
+                    </div>
+
                 </div>
 
             </div>
-
-        </div>
         @endif
 
 
@@ -216,25 +217,8 @@
     </div>
 @endsection
 @section('js')
-<!-- Mollie -->
 
-<script>
-    function openMollieCheckout(plan_id){
-        $('#plan_id').val(plan_id);
 
-        document.getElementById('stripe-payment-form').submit();
-    }
-
-    function openPaystackCheckout(plan_id){
-        $('#plan_id').val(plan_id);
-
-        document.getElementById('stripe-payment-form').submit();
-    }
-</script>
-<!-- PayPal -->
-@if (config('settings.subscription_processor')=='PayPal') 
-<script src="https://www.paypal.com/sdk/js?client-id=<?php echo config('settings.paypal_client_id'); ?>&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-@endif
 <script type="text/javascript">
     $(".btn-sub-actions").click(function() {
         var action = $(this).attr('data-action');
@@ -246,58 +230,15 @@
     function showLocalPayment(plan_name,plan_id){
         alert(plan_name);
     }
-    function updateSubscribtion(subscriptionID, planID){
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-        $.ajax({
-            type:'POST',
-            url: '/paypal/subscribe',
-            dataType: 'json',
-            data: {
-                subscriptionID: subscriptionID,
-                planID: planID
-            },
-            success:function(response){
-                if(response.status){
-                    location.replace(response.success_url);
-                    //window.location.reload();
-                }
-            }, error: function (response) {
-            }
-        })
-    }
+    
     var plans = <?php echo json_encode($plans) ?>;
     var user = <?php echo json_encode(auth()->user()) ?>;
     var payment_processor = <?php echo json_encode(config('settings.subscription_processor')) ?>;
 
-    if(payment_processor.toString() == "PayPal"){
-        plans.forEach(plan => {
-            if(plan.paypal_id != null && user.paypal_subscribtion_id != plan.paypal_id){
-                paypal.Buttons({
-                    style: {
-                        shape: 'rect',
-                        color: 'gold',
-                        layout: 'vertical',
-                        label: 'subscribe'
-                    },
-                    createSubscription: function(data, actions) {
-                        return actions.subscription.create({
-                            'plan_id': plan.paypal_id
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        updateSubscribtion(data.subscriptionID, plan.id);
-                    }
-                }).render('#paypal-button-container-'+plan.paypal_id);
-            }
-        });
-    }
+    
 </script>
 
+@if (config('settings.subscription_processor') == "Stripe")
 <!-- Stripe -->
 <script src="https://js.stripe.com/v3/"></script>
 
@@ -319,24 +260,18 @@
    $('#stripe-payment-form-holder').show();
   }
 </script>
+@else 
+    @if (!(config('settings.subscription_processor') == "Local"))
+        <!-- Payment Processors JS Modules -->
+        @include($subscription_processor.'-subscribe::subscribe')
+    @endif
 
-
-
-@if (config('settings.subscription_processor')=='Paddle') 
-<script src="https://cdn.paddle.com/paddle/paddle.js"></script>    
-<script type="text/javascript">
-        "use strict";
-        var paddleVendorID={{ config('settings.paddlevendorid')}};
-        var currentUserEmail="{{ auth()->user()->email }}";
-        Paddle.Setup({ vendor: paddleVendorID  });
-        function openCheckout(product_id) {
-            var form = document.getElementById('pre-checkout');
-            Paddle.Checkout.open({
-                product: product_id,
-                email: currentUserEmail
-            });
-        }
-    </script> 
 @endif
+
+
+
+
+
+
 
 @endsection

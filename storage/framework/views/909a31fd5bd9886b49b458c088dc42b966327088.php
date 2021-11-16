@@ -123,5 +123,22 @@
 
             </a>
         </li>
+
+        <?php if(!config('settings.hideApps')): ?>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo e(route('apps.index')); ?>">
+                    <i class="ni ni-spaceship text-red"></i> <?php echo e(__('Apps')); ?>
+
+                </a>
+            </li>
+        <?php endif; ?>
+
+        
+        <li class="nav-item">
+            <a class="nav-link" href="<?php echo e(route('settings.cloudupdate')); ?>">
+                <i class="ni ni-cloud-download-95 text-blue"></i> <?php echo e(__('Updates')); ?>
+
+            </a>
+        </li>
 </ul>
 <?php /**PATH /home/ahmed/Downloads/Projects/qr-menu/resources/views/layouts/navbars/menus/admin.blade.php ENDPATH**/ ?>

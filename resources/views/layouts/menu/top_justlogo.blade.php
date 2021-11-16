@@ -48,7 +48,7 @@
                 @yield('addiitional_button_2')
                 @if(config('app.isqrsaas'))
                   
-                  @if(config('settings.enable_call_waiter') && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
+                  @if(!$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
                     <li class="web-menu mr-1">
                       <button type="button" class="btn btn-neutral btn-icon btn-cart" data-toggle="modal" data-target="#modal-form">
                         <span class="btn-inner--icon">
@@ -108,7 +108,7 @@
               @isset($restorant)
                 
                 @if(config('app.isqrsaas'))
-                  @if(config('settings.enable_call_waiter') && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
+                  @if(!$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
                     <a type="button" class="nav-link" data-toggle="modal" data-target="#modal-form">
                       <span class="btn-inner--icon">
                         <i class="fa fa-bell"></i>

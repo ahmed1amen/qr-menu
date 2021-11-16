@@ -35,28 +35,17 @@
                                     <th scope="col">{{ __('Ordering') }}</th>
 
 
-                                    @if(config('settings.subscription_processor')=='Paddle')<th scope="col">{{ __('Paddle ID') }}</th>@endif
-                                    @if(config('settings.subscription_processor')=='Stripe')<th scope="col">{{ __('Stripe ID') }}</th>@endif
-                                    @if(config('settings.subscription_processor')=='PayPal')<th scope="col">{{ __('PayPal ID') }}</th>@endif
-                                    @if(config('settings.subscription_processor')=='Mollie')<th scope="col">{{ __('Mollie ID') }}</th>@endif
-                                    @if(config('settings.subscription_processor')=='Paystack')<th scope="col">{{ __('Paystack ID') }}</th>@endif
-
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
                             @foreach ($plans as $plan)
                                 <tr>
-                                    <td>{{ $plan->name }} </td>
+                                    <td><a href="{{ route('plans.edit', $plan) }}">{{ $plan->name }} </a></td>
                                     <td>{{ $plan->price }}</td>
                                     <td>{{ $plan->period == 1 ? __("Monthly") : __("Anually") }}</td>
                                     <td>{{ $plan->limit_items == 0 ? __("Unlimited") : $plan->limit_items }}</td>
                                     <td>{{ $plan->enable_ordering == 1 ? __("Enabled") : __("Disabled") }}</td>
-                                    @if(config('settings.subscription_processor')=='Paddle')<td >{{ $plan->paddle_id }}</td>@endif
-                                    @if(config('settings.subscription_processor')=='Stripe')<td >{{ $plan->stripe_id }}</td>@endif
-                                    @if(config('settings.subscription_processor')=='PayPal')<td >{{ $plan->paypal_id }}</td>@endif
-                                    @if(config('settings.subscription_processor')=='Mollie')<td >{{ $plan->mollie_id }}</td>@endif
-                                    @if(config('settings.subscription_processor')=='Paystack')<td >{{ $plan->paystack_id }}</td>@endif
                                     <td class="text-right">
                                         <div class="dropdown">
                                             <a class="btn btn-sm btn-icon-only text-light" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

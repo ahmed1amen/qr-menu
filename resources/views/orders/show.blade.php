@@ -14,7 +14,10 @@
                                 <h3 class="mb-0">{{ "#".$order->id." - ".$order->created_at->format(config('settings.datetime_display_format')) }}</h3>
                             </div>
                             <div class="col-4 text-right">
-                                <a href="{{ route('orders.index') }}" class="btn btn-sm btn-primary">{{ __('Back') }}</a>
+                                <a href="{{ route('orders.index') }}" class="btn btn-sm btn-primary"><i class="fas fa-chevron-left"></i> {{ __('Back') }}</a>
+                                @if ($pdFInvoice)
+                                <a target="_blank" href="/pdfinvoice/{{$order->id}}" class="btn btn-sm btn-success"><i class="fas fa-print"></i> {{ __('Print bill') }}</a>
+                                @endif
                             </div>
                         </div>
                     </div>

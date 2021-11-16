@@ -50,6 +50,7 @@
         <a href="/addresses" class="dropdown-item">{{ __('My Addresses') }}</a>
     @endif
     @if(auth()->user()->hasRole('driver'))
+        <a href="/home" class="dropdown-item">{{ __('Dashboard') }}</a>
         <a href="/orders" class="dropdown-item">{{ __('Orders') }}</a>
     @endif
 

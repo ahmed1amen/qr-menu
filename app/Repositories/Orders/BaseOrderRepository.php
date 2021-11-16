@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use App\Notifications\OrderNotification;
 use App\Events\NewOrder as PusherNewOrder;
+use App\Events\OrderAcceptedByAdmin;
 
 class BaseOrderRepository extends Controller
 {
@@ -148,6 +149,10 @@ class BaseOrderRepository extends Controller
             //Save order
             $this->order->save();
 
+            //Save order custom fields
+            $this->order->setMultipleConfig($this->request->customFields);
+
+
         }else{
             //Order is already initialized - in case of continues ordering
             $this->isNewOrder=false;
@@ -210,7 +215,7 @@ class BaseOrderRepository extends Controller
         $total_order_vat=0;
         foreach ($this->order->items()->get() as $key => $item) {
             $order_price+=$item->pivot->qty*$item->pivot->variant_price;
-            $total_order_vat+=$item->pivot->qty*$item->pivot->vatvalue;
+            $total_order_vat+=$item->pivot->vatvalue;//$item->pivot->qty*($item->pivot->vatvalue/100);
         }
         $this->order->order_price=$order_price;
         $this->order->vatvalue=$total_order_vat;
@@ -245,5 +250,8 @@ class BaseOrderRepository extends Controller
         if (strlen(config('broadcasting.connections.pusher.secret')) > 4) {
             event(new PusherNewOrder($this->order, __('notifications_notification_neworder')));
         }
+
+        //Dispatch Approved by admin event
+        OrderAcceptedByAdmin::dispatch($this->order);
     }
 }

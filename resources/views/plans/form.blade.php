@@ -14,36 +14,13 @@
     <div class="col-md-6">
         @include('partials.input',['type'=>"number", 'name'=>'Items limit','id'=>"limit_items",'placeholder'=>"Number of items",'required'=>false,'additionalInfo'=>"0 is unlimited numbers of items",'value'=>(isset($plan)?$plan->limit_items:null)])
     </div>
-    @if(config('settings.subscription_processor')=='Paddle')
-        <div class="col-md-6">
-            @include('partials.input',['name'=>'Paddle ID','id'=>"paddle_id",'placeholder'=>"Paddle ID here...",'required'=>false,'value'=>(isset($plan)?$plan->paddle_id:null)])
-        </div>
-    @endif
-
     @if(config('settings.subscription_processor')=='Stripe')
         <div class="col-md-6">
             @include('partials.input',['name'=>'Stripe Pricing Plan ID','id'=>"stripe_id",'placeholder'=>"Product price plan id from Stripe starting with price_xxxxxx",'required'=>false,'value'=>(isset($plan)?$plan->stripe_id:null)])
         </div>
+    @else
+        @include($theSelectedProcessor."-subscribe::planid")
     @endif
-
-    @if(config('settings.subscription_processor')=='PayPal')
-        <div class="col-md-6">
-            @include('partials.input',['name'=>'PayPal Pricing Plan ID','id'=>"paypal_id",'placeholder'=>"Product price plan id from PayPal starting with P-xxxxxx",'required'=>false,'value'=>(isset($plan)?$plan->paypal_id:null)])
-        </div>
-    @endif
-
-    @if(config('settings.subscription_processor')=='Mollie')
-        <div class="col-md-6">
-            @include('partials.input',['name'=>'Mollie Pricing Plan ID','id'=>"mollie_id",'placeholder'=>"Product price plan id from Mollie",'required'=>false,'value'=>(isset($plan)?$plan->mollie_id:null)])
-        </div>
-    @endif
-
-    @if(config('settings.subscription_processor')=='Paystack')
-        <div class="col-md-6">
-            @include('partials.input',['name'=>'Paystack Pricing Plan ID','id'=>"paystack_id",'placeholder'=>"Product price plan id from Paystack",'required'=>false,'value'=>(isset($plan)?$plan->paystack_id:null)])
-        </div>
-    @endif
-
 </div>
 
 <br/>

@@ -55,7 +55,8 @@ class OrderNotification extends Notification
     {
         if ($this->status.'' == '1') {
             //Created
-            $line = __('You have just received an order');
+             //$line = __('You have just received an order');
+             $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
             $line = __('Your order has been accepted. We are now working on it!');
@@ -82,7 +83,8 @@ class OrderNotification extends Notification
         if ($this->status.'' == '1') {
             //Created
             $greeting = __('There is new order');
-            $line = __('You have just received an order');
+             //$line = __('You have just received an order');
+             $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
             $greeting = __('Your order has been accepted');
@@ -128,7 +130,8 @@ class OrderNotification extends Notification
         if ($this->status.'' == '1') {
             //Created
             $greeting = __('There is new order');
-            $line = __('You have just received an order');
+            //$line = __('You have just received an order');
+            $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
             $greeting = __('Your order has been accepted');

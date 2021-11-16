@@ -1,4 +1,15 @@
 <?php return array (
+  'akaunting/module' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Akaunting\\Module\\Providers\\Laravel',
+    ),
+    'aliases' => 
+    array (
+      'Module' => 'Akaunting\\Module\\Facade',
+    ),
+  ),
   'akaunting/money' => 
   array (
     'providers' => 
@@ -37,6 +48,20 @@
     'aliases' => 
     array (
       'ReCaptcha' => 'Biscolab\\ReCaptcha\\Facades\\ReCaptcha',
+    ),
+  ),
+  'cmixin/business-day' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Cmixin\\BusinessDay\\Laravel\\ServiceProvider',
+    ),
+  ),
+  'cmixin/business-time' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'BusinessTime\\Laravel\\ServiceProvider',
     ),
   ),
   'codedge/laravel-selfupdater' => 
@@ -251,23 +276,18 @@
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     ),
   ),
-  'sentry/sentry-laravel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Sentry\\Laravel\\ServiceProvider',
-      1 => 'Sentry\\Laravel\\Tracing\\ServiceProvider',
-    ),
-    'aliases' => 
-    array (
-      'Sentry' => 'Sentry\\Laravel\\Facade',
-    ),
-  ),
   'silviolleite/laravelpwa' => 
   array (
     'providers' => 
     array (
       0 => 'LaravelPWA\\Providers\\LaravelPWAServiceProvider',
+    ),
+  ),
+  'spatie/eloquent-sortable' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Spatie\\EloquentSortable\\EloquentSortableServiceProvider',
     ),
   ),
   'spatie/geocoder' => 

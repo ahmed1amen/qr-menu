@@ -55,7 +55,7 @@ class DriverController extends Controller
     public function index()
     {
         if (auth()->user()->hasRole('admin')) {
-            return view('drivers.index', ['drivers' =>User::role('driver')->where(['active'=>1])->paginate(15)]);
+            return view('drivers.index', ['drivers' =>User::role('driver')->paginate(15)]);
         } else {
             return redirect()->route('orders.index')->withStatus(__('No Access'));
         }
@@ -130,8 +130,52 @@ class DriverController extends Controller
      */
     public function edit(User $driver)
     {
+        //Today paid orders
+        $today=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::today());
+       
+        //Week paid orders
+        $week=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::now()->startOfWeek());
+
+        //This month paid orders
+        $month=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::now()->startOfMonth());
+
+        //Previous month paid orders 
+        $previousmonth=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=',  Carbon::now()->subMonth(1)->startOfMonth())->where('created_at', '<',  Carbon::now()->subMonth(1)->endOfMonth());
+
+
+        //This user driver_percent_from_deliver
+        $driver_percent_from_deliver=intval(auth()->user()->getConfig('driver_percent_from_deliver',config('settings.driver_percent_from_deliver')))/100;
+
+        $earnings = [
+            'today'=>[
+                'orders'=>$today->count(),
+                'earning'=>$today->sum('delivery_price')*$driver_percent_from_deliver,
+                'icon'=>'bg-gradient-red'
+            ],
+            'week'=>[
+                'orders'=>$week->count(),
+                'earning'=>$week->sum('delivery_price')*$driver_percent_from_deliver,
+                'icon'=>'bg-gradient-orange'
+            ],
+            'month'=>[
+                'orders'=>$month->count(),
+                'earning'=>$month->sum('delivery_price')*$driver_percent_from_deliver,
+                'icon'=>'bg-gradient-green'
+            ],
+            'previous'=>[
+                'orders'=>$previousmonth->count(),
+                'earning'=>$previousmonth->sum('delivery_price')*$driver_percent_from_deliver,
+                'icon'=>'bg-gradient-info'
+            ]
+        ];
+
         if (auth()->user()->hasRole('admin')) {
-            return view('drivers.edit', compact('driver'));
+
+            return view('drivers.edit', [
+                'driver' => $driver,
+                'earnings' => $earnings
+            ]);
+            //return view('drivers.edit', compact('driver'));
         } else {
             return redirect()->route('orders.index')->withStatus(__('No Access'));
         }
@@ -162,6 +206,14 @@ class DriverController extends Controller
         $driver->save();
 
         return redirect()->route('drivers.index')->withStatus(__('Driver successfully deleted.'));
+    }
+
+    public function activateDriver(User $driver)
+    {
+        $driver->active = 1;
+        $driver->update();
+
+        return redirect()->route('drivers.index')->withStatus(__('Driver successfully activated.'));
     }
 
     public function register()

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'version' => '2.1.2',
+    'version' => '2.4.1',
     'env'=>[
         [
             'name'=>'Setup',
@@ -11,7 +11,7 @@ return [
                 ['separator'=>'System', 'title'=>'Project name', 'key'=>'APP_NAME', 'value'=>'Site name'],
                 ['title'=>'Link to your site', 'key'=>'APP_URL', 'value'=>'http://localhost'],
                 ['title'=>'Subdomains', 'key'=>'IGNORE_SUBDOMAINS', 'value'=>'www,127', 'help'=>'Subdomain your app works in. ex if your subdomain is app.yourdomain.com, here you should have www,app '],
-                ['title'=>'App debugging', 'key'=>'APP_DEBUG', 'value'=>'true', 'ftype'=>'bool', 'help'=>'Enable if you experince error 500'],
+                ['title'=>'App debugging', 'key'=>'APP_DEBUG', 'value'=>'true', 'ftype'=>'bool', 'help'=>'Enable if you experience error 500'],
                 ['title'=>'Wildcard domain', 'help'=>'If you have followed the procedure to enable wildcard domain, select this so you can have shopname.yourdomain.com', 'key'=>'WILDCARD_DOMAIN_READY', 'value'=>'false', 'ftype'=>'bool'],
                 ['title'=>'Enable guest log', 'key'=>'ENABLE_GUEST_LOG', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 ['title'=>'Hide project branding on menu page', 'key'=>'HIDE_PROJECT_BRANDING', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
@@ -29,18 +29,16 @@ return [
                 ['title'=>'Hide cash on delivery, system wide', 'key'=>'HIDE_COD', 'value'=>'false', 'ftype'=>'bool'],
                 ['title'=>'Delivery / time intervals in minutes', 'help'=>'Separate the time slots into N Minutes. ex 09:00-09-15 , 09:15-09:30 - value is 15 ', 'key'=>'DELIVERY_INTERVAL_IN_MINUTES', 'value'=>30, 'type'=>'number'],
                 ['title'=>'Default payment type', 'key'=>'DEFAULT_PAYMENT', 'value'=>'cod', 'ftype'=>'select', 'data'=>['cod'=>'Cash on Deliver', 'stripe'=>'Stripe Card processing']],
-                ['title'=>'Is your project multi city', 'help'=>'When selected, the frontpage will display list of cities', 'key'=>'MULTI_CITY', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
+                ['title'=>'Is your project multi city', 'help'=>'When selected, the front page will display list of cities', 'key'=>'MULTI_CITY', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
                 ['title'=>'Single mode - run this site for one restaurant only', 'key'=>'SINGLE_MODE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['title'=>'The id of the restaurant for single mode', 'help'=>'If you have single mode selected, than this restaurant id will be showm', 'key'=>'SINGLE_MODE_ID', 'value'=>'1', 'type'=>'number', 'onlyin'=>'ft'],
+                ['title'=>'The id of the restaurant for single mode', 'help'=>'If you have single mode selected, than this restaurant id will be show', 'key'=>'SINGLE_MODE_ID', 'value'=>'1', 'type'=>'number', 'onlyin'=>'ft'],
                 ['title'=>'Enable import via CSV for restaurant items', 'key'=>'ENABLE_IMPORT_CSV', 'value'=>'false', 'ftype'=>'bool'],
 
-                ['title'=>'Enable call waiter button', 'help'=>'When enabled, there will be notification in the backend when user click on the button to call waiter', 'key'=>'ENABLE_CALL_WAITER', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 ['title'=>'Enable WhatsApp ordering', 'key'=>'IS_WHATSAPP_ORDERING_MODE', 'value'=>'false', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
-                ['title'=>'Driver percentage from delivery fee', 'key'=>'DRIVER_PERCENT_FROM_DELIVERY_FEE', 'value'=>100, 'type'=>'number', 'onlyin'=>'ft'],
-
+                
                 ['separator'=>'Delivery costs', 'title'=>'Enable cost per distance', 'key'=>'ENABLE_COST_PER_DISTANCE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
                 ['title'=>'Cost per kilometer', 'key'=>'COST_PER_KILOMETER', 'value'=>'1', 'onlyin'=>'ft'],
-                ['title'=>'Enable cost based on range', 'help'=>'If you have enable cost based on range, the delivery cost will be calucalted based on what range the distance for delivery is in', 'key'=>'ENABLE_COST_IN_RANGE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
+                ['title'=>'Enable cost based on range', 'help'=>'If you have enable cost based on range, the delivery cost will be calculated based on what range the distance for delivery is in', 'key'=>'ENABLE_COST_IN_RANGE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
                 ['help'=>'Range in kilometers ex from 0km - 5km will be 0-5', 'title'=>'First range', 'key'=>'RANGE_ONE', 'value'=>'0-5', 'onlyin'=>'ft'],
                 ['title'=>'Second range', 'key'=>'RANGE_TWO', 'value'=>'5-7', 'onlyin'=>'ft'],
                 ['title'=>'Third range', 'key'=>'RANGE_THREE', 'value'=>'7-10', 'onlyin'=>'ft'],
@@ -53,14 +51,16 @@ return [
                 ['title'=>'Price for fourth range', 'key'=>'RANGE_FOUR_PRICE', 'value'=>'10', 'onlyin'=>'ft'],
                 ['title'=>'Price for fifth range', 'key'=>'RANGE_FIVE_PRICE', 'value'=>'15', 'onlyin'=>'ft'],
 
-                ['title'=>'Driver percent from the order', 'help'=>'From 0-100. Based on your business type, this value determines how much driver will make from the delivery fee', 'key'=>'DRIVER_PERCENT_FROM_DELIVERY_FEE', 'value'=>'100', 'onlyin'=>'ft'],
+                ['title'=>'Driver percent from the order', 'help'=>'From 0-100. Based on your business type, this value determines how much driver will make from the delivery fee. This value can be change on driver level also', 'key'=>'DRIVER_PERCENT_FROM_DELIVERY_FEE', 'value'=>'100', 'onlyin'=>'ft'],
 
                 ['title'=>'Demo restaurant slug', 'separator'=>'Other settings', 'help'=>'Enter the domain - slug of your demo restaurant that will show on the landing page', 'key'=>'demo_restaurant_slug', 'value'=>'leukapizza', 'onlyin'=>'qrsaas'],
                 ['title'=>'Url route for restaurant', 'help'=>'If you want to change the link the restaurant is open in. ex yourdomain.com/shop/shopname. shop - should be the value here', 'key'=>'URL_ROUTE', 'value'=>'restaurant'],
-                ['title'=>'Print templates images', 'help'=>'Links to images representing the images for the templates. You can usae remote images', 'key'=>'templates', 'value'=>'/impactfront/img/menu_template_1.jpg,/impactfront/img/menu_template_2.jpg', 'onlyin'=>'qrsaas'],
+                ['title'=>'Print templates images', 'help'=>'Links to images representing the images for the templates. You can use remote images', 'key'=>'templates', 'value'=>'/impactfront/img/menu_template_1.jpg,/impactfront/img/menu_template_2.jpg', 'onlyin'=>'qrsaas'],
                 ['title'=>'Print templates zip', 'help'=>'Link to .zip representing the template for download. You can use remote file', 'key'=>'linkToTemplates', 'value'=>'/impactfront/img/templates.zip', 'onlyin'=>'qrsaas'],
 
                 ['title'=>'Enable multi language menus', 'help'=>'When enabled, restaurants can add language version to the menu', 'key'=>'ENABLE_MILTILANGUAGE_MENUS', 'value'=>'false', 'ftype'=>'bool'],
+
+                ['title'=>'Enable change log in update screen', 'key'=>'ENABLE_CHANGELOG_IN_UPDATE', 'value'=>'true', 'ftype'=>'bool'],
 
                 ['title'=>'Position for the register driver link', 'key'=>'DRIVER_LINK_REGISTER_POSITION', 'value'=>'footer', 'data'=>['footer'=>'Footer', 'navbar'=>'Navigation bar', 'dontshow'=>'Hidden'], 'ftype'=>'select', 'onlyin'=>'ft'],
                 ['title'=>'Position for the register restaurant link', 'key'=>'RESTAURANT_LINK_REGISTER_POSITION', 'value'=>'footer', 'data'=>['footer'=>'Footer', 'navbar'=>'Navigation bar', 'dontshow'=>'Hidden'], 'ftype'=>'select', 'onlyin'=>'ft'],
@@ -73,6 +73,10 @@ return [
                 ['title'=>'Debug app level', 'type'=>'hidden', 'key'=>'APP_LOG_LEVEL', 'value'=>'debug', 'data'=>['debug'=>'Debug', 'error'=>'Error']],
                 ['separator'=>'Links', 'title'=>'Link to terms and services', 'key'=>'LINK_TO_TS', 'value'=>"/blog/terms-and-conditions"],
                 [ 'title'=>'Link to privacy policy', 'key'=>'LINK_TO_PR', 'value'=>"/blog/how-it-works"],
+            
+                ['separator'=>"Custom fields on order", 'title'=>'Label on the custom fields', 'key'=>'LABEL_ON_CUSTOM_FIELDS', 'value'=>"Customer Info"]
+                
+            
             ],
         ],
 
@@ -81,44 +85,28 @@ return [
             'slug'=>'finances',
             'icon'=>'ni ni-money-coins',
             'fields'=>[
-
-                ['separator'=>'General', 'title'=>'Tool used for subscriptions', 'key'=>'SUBSCRIPTION_PROCESSOR', 'value'=>'Stripe', 'ftype'=>'select', 'data'=>['Stripe'=>'Stripe', 'PayPal'=>'PayPal', 'Paystack'=>'Paystack', 'Paddle'=>'Paddle', 'Local'=>'Local bank transfer'], 'onlyin'=>'qrsaas'],
+                ['separator'=>'General', 'title'=>'Tool used for subscriptions', 'key'=>'SUBSCRIPTION_PROCESSOR', 'value'=>'Stripe', 'ftype'=>'select', 'data'=>[], 'onlyin'=>'qrsaas'],
                 ['key'=>'ENABLE_PRICING', 'value'=>'true', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
                 ['title'=>'', 'key'=>'FREE_PRICING_ID', 'value'=>'1', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
-                ['title'=>'Enable Finance dasboard for owner', 'help'=>'More advance, finance related reports for owner', 'key'=>'ENABLE_FINANCES_OWNER', 'value'=>'true', 'ftype'=>'bool'],
-                ['title'=>'Enable Finance dasboard for admin', 'key'=>'ENABLE_FINANCES_ADMIN', 'help'=>'More advance, finance related reports for admin', 'value'=>'true', 'ftype'=>'bool'],
+                ['title'=>'Enable Finance dashboard for owner', 'help'=>'More advance, finance related reports for owner', 'key'=>'ENABLE_FINANCES_OWNER', 'value'=>'true', 'ftype'=>'bool'],
+                ['title'=>'Enable Finance dashboard for admin', 'key'=>'ENABLE_FINANCES_ADMIN', 'help'=>'More advance, finance related reports for admin', 'value'=>'true', 'ftype'=>'bool'],
 
                 ['separator'=>'Stripe', 'title'=>'Enable stripe for payments when ordering', 'key'=>'ENABLE_STRIPE', 'value'=>'true', 'ftype'=>'bool'],
                 ['title'=>'Stripe API key', 'key'=>'STRIPE_KEY', 'value'=>'pk_test_XXXXXXXXXXXXXX'],
                 ['title'=>'Stripe API Secret', 'key'=>'STRIPE_SECRET', 'value'=>'sk_test_XXXXXXXXXXXXXXX'],
                 ['title'=>'Enable Stripe connect', 'help'=>'If enabled, restaurants will be able to connect, and money to be send directly to them', 'key'=>'ENABLE_STRIPE_CONNECT', 'value'=>'true', 'ftype'=>'bool'],
-
-                ['separator'=>'Paypal', 'title'=>'Enable paypal for payments when ordering', 'key'=>'ENABLE_PAYPAL', 'value'=>'false', 'ftype'=>'bool'],
-                ['title'=>'Paypal client id', 'key'=>'PAYPAL_CLIENT_ID', 'value'=>''],
-                ['title'=>'Paypal secret', 'key'=>'PAYPAL_SECRET', 'value'=>''],
-                ['title'=>'Paypal mode', 'key'=>'PAYPAL_MODE', 'value'=>'sandbox', 'ftype'=>'select', 'data'=>['sandbox'=>'Development - sandbox', 'live'=>'Production - live']],
-
-                ['separator'=>'Mollie', 'title'=>'Enable mollie for payments when ordering', 'key'=>'ENABLE_MOLLIE', 'value'=>'false', 'ftype'=>'bool'],
-                ['title'=>'Mollie client key', 'key'=>'MOLLIE_KEY', 'value'=>'test_W7vgVS4bUTVarzBm39wjUk7SRV3Aek'],
+                ["title"=> "System will use", "key" => "VENDORS_OR_ADMIN_STRIPE", "ftype" => "select", "onlyin"=>"qrsaas", "value"=>"admin","data"=>[ "admin"=>"Admin defined Stripe", "vendor"=>"Vendor defined Stripe"]],
 
                 ['separator'=>'Local bank transfer', 'title'=>'Local bank transfer explanation', 'key'=>'LOCAL_TRANSFER_INFO', 'value'=>'Wire us the plan amout on the following bank accoun. And inform us about the wire.', 'onlyin'=>'qrsaas'],
                 ['title'=>'Bank Account', 'key'=>'LOCAL_TRANSFER_ACCOUNT', 'value'=>'IBAN: 12112121212121', 'onlyin'=>'qrsaas'],
-
-                ['separator'=>'Paystack', 'title'=>'Paystak payments enabled', 'key'=>'ENABLE_PAYSTACK', 'value'=>'false', 'ftype'=>'bool'],
-                ['title'=>'', 'key'=>'PAYSTACK_PUBLIC_KEY', 'value'=>''],
-                ['title'=>'Secret key', 'key'=>'PAYSTACK_SECRET_KEY', 'value'=>''],
-                ['title'=>'Merchant email', 'key'=>'MERCHANT_EMAIL', 'value'=>''],
-                ['title'=>'Paystack payment url', 'key'=>'PAYSTACK_PAYMENT_URL', 'value'=>'https://api.paystack.co'],
-
-                ['separator'=>'Paddle', 'title'=>'Vendor ID obtained from Paddle.com', 'key'=>'paddleVendorID', 'value'=>'', 'onlyin'=>'qrsaas'],
-
+                
                 ],
         ],
         [],
         [
-            'name'=>'Plugins',
+            'name'=>'Apps & Plugins',
             'slug'=>'plugins',
-            'icon'=>'ni ni-ui-04',
+            'icon'=>'ni ni-spaceship',
             'fields'=>[
 
                 
@@ -137,17 +125,17 @@ return [
                 ['title'=>'Facebook client id', 'key'=>'FACEBOOK_CLIENT_ID', 'value'=>'', 'onlyin'=>'ft'],
                 ['title'=>'Facebook client secret', 'key'=>'FACEBOOK_CLIENT_SECRET', 'value'=>'', 'onlyin'=>'ft'],
                 ['title'=>'Facebook redirec', 'key'=>'FACEBOOK_REDIRECT', 'value'=>'', 'onlyin'=>'ft'],
-                ['separator'=>'Notifications', 'title'=>'Onesignal App id', 'key'=>'ONESIGNAL_APP_ID', 'value'=>''],
-                ['title'=>'Onesignal rest api key', 'key'=>'ONESIGNAL_REST_API_KEY', 'value'=>''],
+                ['separator'=>'Notifications', 'title'=>'Onesignal App id', 'key'=>'ONESIGNAL_APP_ID', 'value'=>'','onlyin'=>'ft'],
+                ['title'=>'Onesignal rest api key', 'key'=>'ONESIGNAL_REST_API_KEY', 'value'=>'','onlyin'=>'ft'],
                 ['title'=>'Twillo Account SID', 'key'=>'TWILIO_ACCOUNT_SID', 'value'=>'SID', 'onlyin'=>'ft'],
                 ['title'=>'Twillo Account auth token', 'key'=>'TWILIO_AUTH_TOKEN', 'value'=>'TOKEN', 'onlyin'=>'ft'],
                 ['title'=>'Twillo from number', 'key'=>'TWILIO_FROM', 'value'=>'NUMBER', 'onlyin'=>'ft'],
                 ['title'=>'System should send sms notifications', 'key'=>'SEND_SMS_NOTIFICATIONS', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['separator'=>'Pusher live notifications', 'title'=>'Pusher app id', 'help'=>'Pusher is used for notification for call waiter and new orders avaialbe', 'key'=>'PUSHER_APP_ID', 'value'=>''],
-                ['title'=>'Pusher app key', 'key'=>'PUSHER_APP_KEY', 'value'=>''],
-                ['title'=>'Pusher app secret', 'key'=>'PUSHER_APP_SECRET', 'value'=>''],
-                ['title'=>'Pusher app cluster', 'key'=>'PUSHER_APP_CLUSTER', 'value'=>'eu'],
-                ['title'=>'Broadcast Driver', 'key'=>'BROADCAST_DRIVER', 'value'=>'log', 'ftype'=>'select', 'data'=>['log'=>'Log', 'pusher'=>'Pusher']],
+                ['separator'=>'Pusher live notifications', 'title'=>'Pusher app id', 'help'=>'Pusher is used for notification for call waiter and new orders avaialbe', 'key'=>'PUSHER_APP_ID', 'value'=>'', 'onlyin'=>'qrsaas'],
+                ['title'=>'Pusher app key', 'key'=>'PUSHER_APP_KEY', 'value'=>'','onlyin'=>'qrsaas'],
+                ['title'=>'Pusher app secret', 'key'=>'PUSHER_APP_SECRET', 'value'=>'','onlyin'=>'qrsaas'],
+                ['title'=>'Pusher app cluster', 'key'=>'PUSHER_APP_CLUSTER', 'value'=>'eu','onlyin'=>'qrsaas'],
+                ['title'=>'Broadcast Driver', 'key'=>'BROADCAST_DRIVER', 'value'=>'log', 'ftype'=>'select', 'data'=>['log'=>'Log', 'pusher'=>'Pusher','onlyin'=>'qrsaas']],
 
                 ['separator'=>'Cookies','title'=>'Cookie Consent', 'key'=>'ENABLE_DEFAULT_COOKIE_CONSENT', 'value'=>'true', 'ftype'=>'bool', 'help'=>'Cookie consent popup - you can import other via js'],
 

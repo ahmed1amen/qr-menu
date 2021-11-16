@@ -5,7 +5,7 @@
         <div class="col-12">
             <div class="form-group">
                 <div class="row">
-                    <label class="form-control-label" >{{ __('Deliverys') }}&nbsp;&nbsp;&nbsp;</label>
+                    <label class="form-control-label" >{{ __('Deliveries') }}&nbsp;&nbsp;&nbsp;</label>
                         <label class="custom-toggle">
                             <input type="checkbox" id="expedition_toggle" <?php if(\Request::input('expedition') == "pickup"){echo "checked";}?>>
                             <span class="custom-toggle-slider rounded-circle"></span>

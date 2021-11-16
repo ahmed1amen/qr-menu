@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Categories;
 use App\Extras;
 use App\Imports\ItemsImport;
 use App\Items;
@@ -11,10 +12,16 @@ use Illuminate\Http\Request;
 use Image;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\ConfChanger;
+use Akaunting\Module\Facade as Module;
 
 class ItemsController extends Controller
 {
     private $imagePath = 'uploads/restorants/';
+
+    public function reorderCategories(Categories $up){
+        $up->moveOrderUp();
+        return redirect()->route('items.index')->withStatus(__('Sort order updated'));
+    }
 
     /**
      * Display a listing of the resource.
@@ -24,6 +31,8 @@ class ItemsController extends Controller
     public function index()
     {
         if (auth()->user()->hasRole('owner')) {
+
+            
             $canAdd = true;
             if (config('app.isqrsaas')) {
                 //In QRsaas with plans, we need to check if they can add new items.
@@ -78,9 +87,23 @@ class ItemsController extends Controller
             ConfChanger::switchCurrency(auth()->user()->restorant);
             $defaultLng=auth()->user()->restorant->localmenus->where('default','1')->first();
 
+            
+
+            //Since 2.1.7 - there is sorting. 
+            $categories=auth()->user()->restorant->categories;
+
+            //If first item order starts with 0
+            if($categories->first()&&$categories->first()->order_index==0){
+                Categories::setNewOrder($categories->pluck('id')->toArray());
+
+                //Re-get categories
+                $categories=auth()->user()->restorant->categories;
+            }
+
             return view('items.index', [
+                'hasMenuPDf'=>Module::has('menupdf'),
                 'canAdd'=>$canAdd,
-                'categories' => auth()->user()->restorant->categories->reverse(),
+                'categories' => $categories,
                 'restorant_id' => auth()->user()->restorant->id,
                 'currentLanguage'=> $currentEnvLanguage,
                 'availableLanguages'=>auth()->user()->restorant->localmenus,
@@ -226,6 +249,7 @@ class ItemsController extends Controller
 
     public function import(Request $request)
     {
+
         $restorant = Restorant::findOrFail($request->res_id);
 
         Excel::import(new ItemsImport($restorant), request()->file('items_excel'));

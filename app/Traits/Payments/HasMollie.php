@@ -16,6 +16,7 @@ trait HasMollie
         if(config('mollie.key')=="test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"||config('mollie.key')==""){
             if(strlen($this->vendor->mollie_payment_key)>5){
                 config(['mollie'=>['key'=>$this->vendor->mollie_payment_key]]);
+                Mollie::api()->setApiKey($this->vendor->mollie_payment_key);
             }
         }
         try {

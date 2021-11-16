@@ -95,9 +95,8 @@ class VendorController extends Controller
         //Create all the time slots
         //The restaurant
         $restaurant = Restaurant::findOrFail($restorantID);
-        //dd($restaurant->hours);
 
-        $timeSlots = $restaurant->hours ? $this->getTimieSlots($restaurant->hours->toArray()) : [];
+        $timeSlots = $this->getTimieSlots($restaurant);
 
         //Modified time slots for app
         $timeSlotsForApp = [];
@@ -113,17 +112,18 @@ class VendorController extends Controller
             $format = 'g:i A';
         }
 
-        //dd($ourDateOfWeek);
-        //dd($restaurant->hours[$ourDateOfWeek.'_from']);
+        $businessHours=$restaurant->getBusinessHours();
+        $now = new \DateTime('now');
 
-        $openingTime = date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_from']));
-        $closingTime = date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_to']));
+        $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
+        $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
+
 
         $params = [
             'restorant' => $restaurant,
             'timeSlots' => $timeSlotsForApp,
-            'openingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_from'] ? $openingTime : null,
-            'closingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_to'] ? $closingTime : null,
+            'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
+            'closingTime' => $businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null,
          ];
 
         if ($restaurant) {

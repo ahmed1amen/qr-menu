@@ -8,6 +8,7 @@ use App\Items;
 use App\Pages;
 use App\Plans;
 use App\Restorant;
+use App\Categories;
 use App\Settings;
 use App\Tables;
 use App\User;
@@ -26,6 +27,7 @@ use App\Order;
 use App\Models\Features;
 use App\Models\Testimonials;
 use App\Models\Process;
+use Akaunting\Module\Facade as Module;
 
 class FrontEndController extends Controller
 {
@@ -163,7 +165,7 @@ class FrontEndController extends Controller
     {
         $subDomain = $this->getSubDomain();
         if ($subDomain) {
-            $restorant = Restorant::where('subdomain', $subDomain)->get();
+            $restorant = Restorant::whereRaw('REPLACE(subdomain, "-", "") = ?', [str_replace("-","",$subDomain)])->get();
             if (count($restorant) != 1) {
                 return view('restorants.alertdomain', ['subdomain' =>$subDomain]);
             }
@@ -544,12 +546,21 @@ class FrontEndController extends Controller
 
     public function restorant($alias)
     {
+
+        //Do we have impressum app
+        $doWeHaveImpressumApp=Module::has('impressum');
+
+
         $subDomain = $this->getSubDomain();
         if ($subDomain && $alias !== $subDomain) {
             return redirect()->route('restorant', $subDomain);
         }
-        $restorant = Restorant::where('subdomain', $alias)->first();
+        $restorant = Restorant::whereRaw('REPLACE(subdomain, "-", "") = ?', [str_replace("-","",$alias)])->first();
 
+        //Set config based on restaurant
+        config(['app.timezone' => $restorant->getConfig('time_zone',config('app.timezone'))]);
+
+        
         if ($restorant->active == 1) {
 
             if(isset($_GET['pay'])){
@@ -584,18 +595,7 @@ class FrontEndController extends Controller
                 }
             }
 
-            //Working hours
-            $ourDateOfWeek = date('N') - 1;
-
-            //dd($ourDateOfWeek);
-            $format = 'G:i';
-            if (config('settings.time_format') == 'AM/PM') {
-                $format = 'g:i A';
-            }
-
-            $openingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_from'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_from'])) : null;
-            $closingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_to'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_to'])) : null;
-
+           
             $previousOrders = Cookie::get('orders') ? Cookie::get('orders') : '';
             $previousOrderArray = array_filter(explode(',', $previousOrders));
 
@@ -615,12 +615,21 @@ class FrontEndController extends Controller
             $currentEnvLanguage = isset(config('config.env')[2]['fields'][0]['data'][config('app.locale')]) ? config('config.env')[2]['fields'][0]['data'][config('app.locale')] : 'UNKNOWN';
 
             //dd($restorant->categories[1]->items[0]->extras);
+           // dd(Categories::where('restorant_id',$restorant->id)->ordered()->get());
+
+           $businessHours=$restorant->getBusinessHours();
+           $now = new \DateTime('now');
+
+           $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
+           $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
+
             return view('restorants.show', [
+                'doWeHaveImpressumApp'=>$doWeHaveImpressumApp,
                 'restorant' => $restorant,
-                'openingTime' => $openingTime,
-                'closingTime' => $closingTime,
+                'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
+                'closingTime' => $businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null,
                 'usernames' => $usernames,
-                'canDoOrdering'=>$canDoOrdering,
+                'canDoOrdering'=>$canDoOrdering&&$businessHours->isOpen(),
                 'currentLanguage'=>$currentEnvLanguage,
                 'showLanguagesSelector'=>env('ENABLE_MILTILANGUAGE_MENUS', false) && $restorant->localmenus()->count() > 1,
                 'hasGuestOrders'=>count($previousOrderArray) > 0,

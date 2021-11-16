@@ -54,6 +54,8 @@ Coded by www.creative-tim.com
     <link href="{{ asset('social') }}/css/argon-design-system.css?v=1.2.3" rel="stylesheet" />
     <link href="{{ asset('social') }}/css/custom.css?v=1.2.3" rel="stylesheet" />
 
+    <!-- Custom CSS defined by admin -->
+    <link type="text/css" href="{{ asset('byadmin') }}/front.css" rel="stylesheet">
 
 </head>
 
@@ -102,6 +104,9 @@ Coded by www.creative-tim.com
 
    <!-- All in one -->
    <script src="{{ asset('custom') }}/js/js.js?id={{ config('config.version')}}s"></script>
+
+    <!-- Custom JS defined by admin -->
+    <?php echo file_get_contents(base_path('public/byadmin/front.js')) ?>
 
   <!-- Notify JS -->
   <script src="{{ asset('custom') }}/js/notify.min.js"></script>

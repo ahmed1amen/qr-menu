@@ -57,15 +57,14 @@
               </div>
               <div>
                 <h2 class="text-white mb-4">
-                  <div class="display-4 font-weight-light ckedit">{{ __('whatsapp.hero_title') }}</div>
-                  <div class="d-block ckedit">{{ __('whatsapp.hero_subtitle') }}</div>
+                  <div class="display-4 font-weight-light ckedit" key="hero_title" id="hero_title">{{ __('whatsapp.hero_title') }}</div>
+                  <div class="d-block ckedit" key="hero_subtitle" id="hero_subtitle">{{ __('whatsapp.hero_subtitle') }}</div>
                 </h2>
-                <p class="lead text-white ckedit">{{ __('whatsapp.hero_description') }}</p>
+                <p class="lead text-white ckedit" key="hero_description" id="hero_description">{{ __('whatsapp.hero_description') }}</p>
                 <div class="mt-5">
-
                   @if(auth()->user()&&auth()->user()->hasRole('admin'))
-                  <div class="ckedit btn btn-icon btn-white rounded-pill" key="start_now">{{ __('whatsapp.start_now') }}</div>
-                  <div class="btn btn-icon rounded-pill btn-outline-white" key="see_demo">{{ __('whatsapp.see_demo') }}</div>
+                  <div class="ckedit btn btn-icon btn-white rounded-pill" key="start_now" id="start_now">{{ __('whatsapp.start_now') }}</div>
+                  <div class="btn btn-icon rounded-pill btn-outline-white" key="see_demo" id="see_demo">{{ __('whatsapp.see_demo') }}</div>
                   @else
                   <button type="button" class="btn btn-icon btn-white rounded-pill" data-toggle="modal" data-target="#modal-register">
                     <span class="btn-inner--text">{{ __('whatsapp.start_now') }}</span>
@@ -75,7 +74,6 @@
                   <a href="/#demo" class="btn btn-icon rounded-pill btn-outline-white" type="button">
                     <span class="btn-inner--icon"><i class="fas fa-angle-right"></i></span>
                     <span class="btn-inner--text">{{ __('whatsapp.see_demo')}}</span>
-
                   </a>
                 
                   @endif

@@ -75,8 +75,7 @@ return [
         'storage/app',
         'storage/framework',
         'storage/logs',
-        'storage/self-update',
-        'vendor',
+        'storage/self-update'
     ],
 
     /*

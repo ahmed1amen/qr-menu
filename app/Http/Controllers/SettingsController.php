@@ -1,9 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use Akaunting\Money\Currency;
-use Akaunting\Money\Money;
+use Akaunting\Module\Facade as Module;
 use App\Address;
 use App\Categories;
 use App\Extras;
@@ -42,7 +40,7 @@ class SettingsController extends Controller
 
     public function systemstatus()
     {
-        $totalTasks = 3;
+        $totalTasks = 2;
         $percent = 100 / $totalTasks;
         $taskDone = 0;
 
@@ -63,25 +61,6 @@ class SettingsController extends Controller
                     auth()->user()->notify(new SystemTest(auth()->user()));
                     array_push($testResutls, ['settings_smtp', 'OK', true]);
                     $taskDone++;
-
-                    //Now in qr, we need paddle vendor id or stripe s
-                    if (config('settings.subscription_processor') == 'Paddle') {
-                        //Check paddle
-                        if (config('settings.paddlevendorid') && strlen(config('settings.paddlevendorid') > 3)) {
-                            array_push($testResutls, ['settings_paddle', 'OK', true]);
-                            $taskDone++;
-                        } else {
-                            array_push($testResutls, ['settings_paddle', 'settings_paddle_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
-                        }
-                    } else {
-                        //Check stripe
-                        if (config('settings.stripe_key') && strlen(config('settings.stripe_key')) > 3 && config('settings.stripe_key') != 'pk_test_XXXXXXXXXXXXXX' && config('settings.stripe_secret') != 'sk_test_XXXXXXXXXXXXXXX') {
-                            array_push($testResutls, ['settings_stripe', 'OK', true]);
-                            $taskDone++;
-                        } else {
-                            array_push($testResutls, ['settings_stripe', 'settings_stripe_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
-                        }
-                    }
                 } catch (\Exception $e) {
                     array_push($testResutls, ['settings_smtp', 'settings_smtp_not_ok', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/obtain-smtp']);
                 }
@@ -104,8 +83,18 @@ class SettingsController extends Controller
         foreach ($items as $key => $item) {
             $object = $provider::find($item->id);
             foreach ($fields as $keyFields => $valueField) {
+                $valueToStore="";
                 if($object){
-                    $object->setTranslation($valueField, $locale, $item->name)->save();
+                    if($valueField=="name"){
+                        $valueToStore=$item->name; 
+                    }else if($valueField=="description"){
+                        $valueToStore=$item->description;
+                    }
+                    
+                    if(is_numeric($valueToStore)){
+                        $valueToStore=$valueToStore.".";
+                    }
+                    $object->setTranslation($valueField, $locale, $valueToStore)->save();
                 }
                 
             }
@@ -156,6 +145,19 @@ class SettingsController extends Controller
     public function getCurrentEnv()
     {
         $envConfigs = config('config.env');
+
+        //Extra fields from included modules
+        $extraFields=[];
+        foreach (Module::all() as $key => $module) {
+            if($module->get('global_fields')){
+                $extraFields=array_merge($extraFields,$module->get('global_fields'));
+            }
+            
+        }
+        $envConfigs['3']['fields']=array_merge($extraFields,$envConfigs['3']['fields']);
+
+
+        //Since 2.2.x there is custom modules
         $envMerged = [];
         foreach ($envConfigs as $key => $group) {
             $theMegedGroupFields = [];
@@ -186,20 +188,36 @@ class SettingsController extends Controller
         return $envMerged;
     }
 
-    public function index(Settings $settings)
-    {
+    public function cloudupdate(){
         if (auth()->user()->hasRole('admin')) {
 
-
             //Always run migration
-            $exitCodeForMigration=Artisan::call('migrate', [
-                '--force' => true
-             ]);
+            Artisan::call('migrate', ['--force' => true]);
+
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                } else if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024*1024*1024; // nnnM -> GB
+                }
+            }
+            $okMemory=true;
+            if($memory_limit==-1||$memory_limit >= 512 * 1024 * 1024){
+               
+            }else{
+                //Alert
+                $okMemory=false;
+            }
+            
+
 
             $updater = new \Codedge\Updater\UpdaterManager(app());
 
-             //With update
-             if(isset($_GET['do_update'])){
+            //With update
+            if(isset($_GET['do_update'])){
                 if($updater->source()->isNewVersionAvailable()) {
 
             
@@ -212,13 +230,12 @@ class SettingsController extends Controller
                     // Run the update process
                     $updater->source()->update($release);
 
-                    return redirect()->route('settings.index')->withStatus(__('Successfully updated to version v').$versionAvailable);
+                    return redirect()->route('settings.cloudupdate')->withStatus(__('Successfully updated to version v').$versionAvailable);
                     
                 } else {
-                    return redirect()->route('settings.index')->withStatus(__('There is nothing to update!'));
+                    return redirect()->route('settings.cloudupdate')->withStatus(__('There is nothing to update!'));
                 }
             }
-            
 
             //Check for new version
             $updater->source()->deleteVersionFile();
@@ -227,6 +244,43 @@ class SettingsController extends Controller
             if($newVersionAvailable){
                 $newVersion=$updater->source()->getVersionAvailable();
             }
+            
+            $theChangeLog="";
+            if(config('settings.enalbe_change_log_in_update')){
+                $ftChange="https://raw.githubusercontent.com/dimovdaniel/foodtigerdocs/master/changelog/changelog.md        ";
+                $qrChange="https://raw.githubusercontent.com/dimovdaniel/qrmakerdocs/master/changelog/changelog.md";
+                $wpChange="https://raw.githubusercontent.com/mobidonia/whatsappfooddocs/master/changelog/changelog.md";
+                if(config('app.isft')){
+                    $theChangeLog=@file_get_contents($ftChange);
+                }else {
+                    if(config('settings.is_whatsapp_ordering_mode')){
+                        $theChangeLog=@file_get_contents($wpChange);
+                    }else{
+                        $theChangeLog=@file_get_contents($qrChange);
+                    }
+                }
+                $theChangeLog=str_replace('{% embed url="https://youtu.be/','<iframe width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="https://www.youtube.com/embed/',$theChangeLog);
+                $theChangeLog=str_replace('%}','></iframe>',$theChangeLog);
+                $theChangeLog=str_replace('\\','',$theChangeLog);
+            }
+           
+        
+            
+            return view('settings.cloudupdate', [
+                'newVersionAvailable'=>$newVersionAvailable,
+                'newVersion'=>$newVersion,
+                'theChangeLog'=>$theChangeLog,
+                'okMemory'=>$okMemory
+               ]);
+
+        }else{
+            return redirect()->route('orders.index')->withStatus(__('No Access'));
+        }
+    }
+
+    public function index(Settings $settings)
+    {
+        if (auth()->user()->hasRole('admin')) {
 
             $curreciesArr = [];
             static::$currencies = require __DIR__.'/../../../config/money.php';
@@ -256,8 +310,6 @@ class SettingsController extends Controller
                 'jsback'=>$jsback,
                 'cssfront'=>$cssfront,
                 'cssback'=>$cssback,
-                'newVersionAvailable'=>$newVersionAvailable,
-                'newVersion'=>$newVersion,
                 'hasDemoRestaurants'=>$hasDemoRestaurants,
                 'envConfigs'=>$this->getCurrentEnv(),
                 'showMultiLanguageMigration'=>env('ENABLE_MILTILANGUAGE_MENUS', false) && ! file_exists(storage_path('multilanguagemigrated')),
@@ -358,6 +410,10 @@ class SettingsController extends Controller
             return redirect()->route('settings.index')->withStatus(__('Settings not allowed to be updated in DEMO mode!'));
         }
 
+        if(empty($request->env['URL_ROUTE'])){
+           return redirect()->route('settings.index')->with('message', 'Url route for restaurant can\'t be empty!');
+        }
+
         //$newEnvs = array_merge($this->getCurrentEnv(), $request->env);
         //dd($newEnvs);
         $this->setEnvironmentValue($request->env);
@@ -379,6 +435,9 @@ class SettingsController extends Controller
         $settings->mobile_info_title = strip_tags($request->mobile_info_title) ? strip_tags($request->mobile_info_title) : '';
         $settings->mobile_info_subtitle = strip_tags($request->mobile_info_subtitle) ? strip_tags($request->mobile_info_subtitle) : '';
         $settings->delivery = (float) $request->delivery;
+        $settings->order_fields=$request->order_fields;
+        $settings->update();
+        
         //$settings->order_options = $request->order_options;
 
         fwrite(fopen(__DIR__.'/../../../public/byadmin/front.js', 'w'), str_replace('tagscript', 'script', $request->jsfront));
@@ -444,7 +503,7 @@ class SettingsController extends Controller
         }
 
         if ($request->hasFile('wphomehero')) {
-            $wpDemo = Image::make($request->qrdemo->getRealPath());
+            $wpDemo = Image::make($request->wphomehero->getRealPath());
             $wpDemo->save(public_path().'/social/img/wpordering.svg'); 
         }
         

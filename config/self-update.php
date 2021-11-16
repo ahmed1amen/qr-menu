@@ -70,13 +70,11 @@ return [
     'exclude_folders' => [
         '__MACOSX',
         'node_modules',
-        'bootstrap/cache',
         'bower',
         'storage/app',
         'storage/framework',
         'storage/logs',
-        'storage/self-update',
-        'vendor',
+        'storage/self-update'
     ],
 
     /*

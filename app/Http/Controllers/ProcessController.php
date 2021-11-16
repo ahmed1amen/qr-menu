@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class ProcessController extends Controller
 {
-    protected $imagePath = 'uploads/settings/';
+    protected $imagePath = 'uploads/restorants/';
 
     private function validateAccess()
     {
@@ -21,8 +21,8 @@ class ProcessController extends Controller
         return [
             ['ftype'=>'input', 'name'=>'Title', 'id'=>'title', 'placeholder'=>__('Enter title'), 'required'=>true],
             ['ftype'=>'input', 'name'=>'Description', 'id'=>'description', 'placeholder'=>__('Enter description'), 'required'=>true],
-            ['ftype'=>'input', 'name'=>'Link Name', 'id'=>'link_name', 'placeholder'=>__('Enter link name'), 'required'=>true],
-            ['ftype'=>'input', 'name'=>'Link ', 'id'=>'link', 'placeholder'=>__('Enter link URL'), 'required'=>true],
+            ['ftype'=>'input', 'name'=>'Link Name', 'id'=>'link_name', 'placeholder'=>__('Enter link name'), 'required'=>false],
+            ['ftype'=>'input', 'name'=>'Link ', 'id'=>'link', 'placeholder'=>__('Enter link URL'), 'required'=>false],
         ];
     }
 
@@ -161,6 +161,8 @@ class ProcessController extends Controller
         $process->description = $request->description;
         $process->link = $request->link;
         $process->link_name = $request->link_name;
+
+        $process->update();
 
         return redirect()->route('admin.landing.processes.index')->withStatus(__('Process was updated'));
     }

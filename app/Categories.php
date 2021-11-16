@@ -3,12 +3,30 @@
 namespace App;
 
 use App\Models\TranslateAwareModel;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 
-class Categories extends TranslateAwareModel
+
+class Categories extends TranslateAwareModel implements Sortable
 {
+
+    use SortableTrait;
+
     protected $table = 'categories';
     public $translatable = ['name'];
+
+    public $sortable = [
+        'order_column_name' => 'order_index',
+        'sort_when_creating' => true,
+    ];
+
+    //Used for sort grouping
+    public function buildSortQuery()
+    {
+        return static::query()->where('restorant_id', $this->restorant_id);
+    }
+
+    
 
     public function items()
     {

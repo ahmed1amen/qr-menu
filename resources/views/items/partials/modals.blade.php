@@ -186,7 +186,7 @@
                                     <input type="file" class="form-control form-control-file" name="items_excel" accept=".csv, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
                                 </div>
                             </div>
-                            <input name="res_id" id="res_id" type="hidden" required>
+                            <input name="res_id" id="res_id" type="hidden" value="{{ $restorant_id }}" required>
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary my-4">{{ __('Save') }}</button>
                             </div>

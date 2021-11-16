@@ -5,7 +5,7 @@
             <th scope="col">{{ __('Restaurant') }}</th>
         @endif
         <th class="table-web" scope="col">{{ __('Created') }}</th>
-        <th class="table-web" scope="col">{{ __('Table / Method') }}</th>
+        <th class="table-web" scope="col">{{ !config('settings.is_whatsapp_ordering_mode') ? __('Table / Method') : __('Method') }}</th>
         <th class="table-web" scope="col">{{ __('Items') }}</th>
         <th class="table-web" scope="col">{{ __('Price') }}</th>
         <th scope="col">{{ __('Last status') }}</th>

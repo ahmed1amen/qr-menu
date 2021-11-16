@@ -44,6 +44,9 @@
                             @include('cart.address')
                         </div>
 
+                        <!-- Custom Fields -->
+                        @include('cart.customfields')
+
                         <!-- Comment -->
                         @include('cart.comment')
 
@@ -63,9 +66,11 @@
                       <!-- LOCAL ORDERING -->
                       @include('cart.localorder.table')
 
-
                       <!-- Local Order Phone -->
                       @include('cart.localorder.phone')
+
+                      <!-- Custom Fields -->
+                      @include('cart.customfields')
 
                       <!-- Comment -->
                       @include('cart.comment')
@@ -82,8 +87,8 @@
                         <!-- Delivery time slot -->
                         @include('cart.time')
 
-                        <!-- Client Info -->
-                        @include('cart.client')
+                        <!-- Custom Fields  -->
+                        @include('cart.customfields')
 
                         <!-- Delivery adress -->
                         @include('cart.newaddress')

@@ -15,7 +15,6 @@
                   <h3 class="mb-0">{{ __('Landing Page') }}</h3>
                 </div>
                 <div class="col text-right">
-
                   <div class="dropdown">
                     <a href="#" class="btn btn-default btn-sm dropdown-toggle " data-toggle="dropdown" id="navbarDropdownMenuLink2">
                         <img src="{{ asset('images') }}/icons/flags/{{ strtoupper(config('app.locale'))}}.png" /> {{ $currentLanguage }}
@@ -28,18 +27,11 @@
                             </a>
                         </li>
                         @endforeach
-                      
-                        
-                        
                     </ul>
                 </div>
-
-
-
                 </div>
               </div>
             </div>
-
             <!-- Light table -->
             <div class="table-responsive">
               <table class="table align-items-center table-flush">

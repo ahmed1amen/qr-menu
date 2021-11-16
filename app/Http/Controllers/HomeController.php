@@ -55,7 +55,7 @@ class HomeController extends Controller
             //first analytics
             $last30days = Carbon::now()->subDays(30);
             $last30daysOrders = Order::all()->where('created_at', '>', $last30days)->count();
-            $last30daysOrdersValue = Order::all()->where('created_at', '>', $last30days)->sum('order_price');
+            $last30daysOrdersValue = Order::all()->where('created_at', '>', $last30days)->where('payment_status','paid')->sum('order_price');
             //$uniqueUsersOrders = Order::all()->unique('address_id')->count();
             $uniqueUsersOrders = Order::select('client_id')->groupBy('client_id')->get()->count();
             $allClients = User::all()->count();
@@ -65,6 +65,7 @@ class HomeController extends Controller
             $salesValue = DB::table('orders')
                         ->select(DB::raw('SUM(order_price + delivery_price) AS sumValue'))
                         ->where('created_at', '>', $sevenMonthsDate)
+                        ->where('payment_status','paid')
                         ->groupBy(DB::raw('YEAR(created_at), MONTH(created_at)'))
                         ->orderBy(DB::raw('YEAR(created_at), MONTH(created_at)'), 'asc')
                         ->pluck('sumValue');
@@ -72,6 +73,7 @@ class HomeController extends Controller
             $monthLabels = DB::table('orders')
                         ->select(DB::raw('MONTH(created_at) as month'))
                         ->where('created_at', '>', $sevenMonthsDate)
+                        ->where('payment_status','paid')
                         ->groupBy(DB::raw('YEAR(created_at), MONTH(created_at)'))
                         ->orderBy(DB::raw('YEAR(created_at), MONTH(created_at)'), 'asc')
                         ->pluck('month');
@@ -79,16 +81,18 @@ class HomeController extends Controller
             $totalOrders = DB::table('orders')
                         ->select(DB::raw('count(id) as totalPerMonth'))
                         ->where('created_at', '>', $sevenMonthsDate)
+                        ->where('payment_status','paid')
                         ->groupBy(DB::raw('YEAR(created_at), MONTH(created_at)'))
                         ->orderBy(DB::raw('YEAR(created_at), MONTH(created_at)'), 'asc')
                         ->pluck('totalPerMonth');
 
-            $last30daysDeliveryFee = Order::all()->where('created_at', '>', $last30days)->sum('delivery_price');
-            $last30daysStaticFee = Order::all()->where('created_at', '>', $last30days)->sum('static_fee');
-            $last30daysDynamicFee = Order::all()->where('created_at', '>', $last30days)->sum('fee_value');
+            $last30daysDeliveryFee = Order::all()->where('created_at', '>', $last30days)->where('payment_status','paid')->sum('delivery_price');
+            $last30daysStaticFee = Order::all()->where('created_at', '>', $last30days)->where('payment_status','paid')->sum('static_fee');
+            $last30daysDynamicFee = Order::all()->where('created_at', '>', $last30days)->where('payment_status','paid')->sum('fee_value');
             $last30daysTotalFee = DB::table('orders')
                                 ->select(DB::raw('SUM(delivery_price + static_fee + fee_value) AS sumValue'))
                                 ->where('created_at', '>', $last30days)
+                                ->where('payment_status','paid')
                                 ->value('sumValue');
 
             //dd(Carbon::now()->format('M'));
@@ -204,7 +208,52 @@ class HomeController extends Controller
                 'months' => $months,
             ]);
         } elseif (auth()->user()->hasRole('driver')) {
-            return redirect()->route('orders.index');
+
+            $driver = auth()->user();
+
+             //Today paid orders
+            $today=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::today());
+        
+            //Week paid orders
+            $week=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::now()->startOfWeek());
+
+            //This month paid orders
+            $month=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=', Carbon::now()->startOfMonth());
+
+            //Previous month paid orders 
+            $previousmonth=Order::where(['driver_id'=>$driver->id])->where('payment_status','paid')->where('created_at', '>=',  Carbon::now()->subMonth(1)->startOfMonth())->where('created_at', '<',  Carbon::now()->subMonth(1)->endOfMonth());
+
+
+            //This user driver_percent_from_deliver
+            $driver_percent_from_deliver=intval(auth()->user()->getConfig('driver_percent_from_deliver',config('settings.driver_percent_from_deliver')))/100;
+
+            $earnings = [
+                'today'=>[
+                    'orders'=>$today->count(),
+                    'earning'=>$today->sum('delivery_price')*$driver_percent_from_deliver,
+                    'icon'=>'bg-gradient-red'
+                ],
+                'week'=>[
+                    'orders'=>$week->count(),
+                    'earning'=>$week->sum('delivery_price')*$driver_percent_from_deliver,
+                    'icon'=>'bg-gradient-orange'
+                ],
+                'month'=>[
+                    'orders'=>$month->count(),
+                    'earning'=>$month->sum('delivery_price')*$driver_percent_from_deliver,
+                    'icon'=>'bg-gradient-green'
+                ],
+                'previous'=>[
+                    'orders'=>$previousmonth->count(),
+                    'earning'=>$previousmonth->sum('delivery_price')*$driver_percent_from_deliver,
+                    'icon'=>'bg-gradient-info'
+                ]
+            ];
+
+            return view('dashboard', [
+                'earnings' => $earnings
+            ]);
+            //return redirect()->route('orders.index');
         } elseif (auth()->user()->hasRole('client')) {
             return redirect()->route('front');
         }

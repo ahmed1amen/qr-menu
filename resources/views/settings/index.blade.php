@@ -1,7 +1,22 @@
 @extends('layouts.app', ['title' => __('Settings')])
 
 @section('content')
-<div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
+<div class="header bg-gradient-primary pb-7 pt-5 pt-md-8">
+    <div class="container-fluid">
+        <div class="header-body">
+          <div class="row align-items-center py-4">
+            <!--<div class="col-lg-6 col-7">
+            </div>-->
+            <div class="col-lg-12 col-12 text-right">
+                @if($hasDemoRestaurants)
+                    <a href="{{ route('admin.restaurants.removedemo') }}" class="btn btn-sm btn-danger">{{ __('Remove demo data') }}</a>
+                @endif
+                <a href="{{ route('systemstatus') }}" class="btn btn-sm btn-danger">{{ __('settings_system_status') }}</a>
+                <a href="{{ route('admin.regenerate.sitemap') }}" class="btn btn-sm btn-warning">{{ __('Regenerate sitemap') }}</a>
+            </div>
+          </div>
+        </div>
+    </div>
 </div>
 <div class="container-fluid mt--7">
     @if ($showMultiLanguageMigration)
@@ -15,18 +30,13 @@
                         <div class="col-4">
                             <h3 class="mb-0">{{ __('Settings Management') }}</h3>
                         </div>
-                        <div class="col-8 text-right">
+                        <!--<div class="col-8 text-right">
                             @if($hasDemoRestaurants)
                                 <a href="{{ route('admin.restaurants.removedemo') }}" class="btn btn-sm btn-danger">{{ __('Remove demo data') }}</a>
                             @endif
                             <a href="{{ route('systemstatus') }}" class="btn btn-sm btn-danger">{{ __('settings_system_status') }}</a>
                             <a href="{{ route('admin.regenerate.sitemap') }}" class="btn btn-sm btn-warning">{{ __('Regenerate sitemap') }}</a>
-                            @if($newVersionAvailable)
-                                <a href="{{ route('settings.index') }}?do_update=true" class="btn btn-sm btn-success">{{ __('New version avaialbe') }} - v{{$newVersion}}</a>
-                            @else
-                                <a class="btn btn-sm btn-white" href="javascript:alert('You do have the latest major version')">{{ __('Latest version')}}</a>
-                            @endif
-                        </div>
+                        </div>-->
                     </div>
                 </div>
                 <div class="card-body">
@@ -76,6 +86,7 @@
                                         <a class="nav-link mb-sm-3 mb-md-0" id="tabs-icons-text-2-tab" data-toggle="tab" href="#cssjs" role="tab" aria-controls="tabs-icons-text-2" aria-selected="false"><i class="ni ni-palette mr-2"></i>{{ __ ('CSS & JS') }}</a>
                                     </li>
 
+                                   
 
 
 
@@ -172,9 +183,15 @@
 
                                     @foreach ($envConfigs as $groupConfig)
                                         <div class="tab-pane fade" id="{{ $groupConfig['slug'] }}" role="tabpanel" aria-labelledby="{{ $groupConfig['slug'] }}">
-
+                                            
                                             <div class="">
                                                 @include('partials.fields',['fields'=>$groupConfig['fields']])
+                                                @if ($groupConfig['slug']=="setup")
+                                                    @include('partials.fields',['fields'=>[
+                                                    ['separator'=>"Custom fields on order", 'additionalInfo'=>'Please check docs on how to define the custom fields on order.', 'name'=>'Custom fileds in JSON format','required'=>false,'placeholder'=>'', 'id'=>'order_fields', 'ftype'=>'textarea','type'=>"textarea",'value'=>$settings->order_fields]
+                                                    ]
+                                                    ])
+                                                @endif
                                             </div>
                                         </div>
                                     @endforeach

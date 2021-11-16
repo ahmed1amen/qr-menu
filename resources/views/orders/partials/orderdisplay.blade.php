@@ -54,12 +54,7 @@
         {{ $order->time_formated }}
     </td>
     <td class="table-web">
-        @if ($order->delivery_method==1)
-            <span class="badge badge-primary badge-pill">{{ __('Delivery') }}</span>
-        @else
-            <span class="badge badge-success badge-pill">{{ __('Pickup') }}</span>
-        @endif
-
+        <span class="badge badge-primary badge-pill">{{ $order->getExpeditionType() }}</span>
     </td>
     <td>
         @include('orders.partials.laststatus')

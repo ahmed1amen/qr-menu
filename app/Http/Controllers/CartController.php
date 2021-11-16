@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Akaunting\Money\Currency;
-use Akaunting\Money\Money;
+use App\Traits\Fields;
 use App\Items;
 use App\Models\Variants;
 use App\Order;
@@ -15,9 +14,12 @@ use Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use App\Services\ConfChanger;
+use Akaunting\Module\Facade as Module;
 
 class CartController extends Controller
 {
+    use Fields;
+
     public function add(Request $request)
     {
         $item = Items::find($request->id);
@@ -102,6 +104,14 @@ class CartController extends Controller
 
     public function cart()
     {
+         
+        
+
+
+        $fieldsToRender=[];
+        if(strlen(config('global.order_fields'))>10){
+            $fieldsToRender=$this->convertJSONToFields(json_decode(config('global.order_fields'),true)); 
+        }
         $isEmpty = false;
         if (Cart::getContent()->isEmpty()) {
             $isEmpty = true;
@@ -121,31 +131,25 @@ class CartController extends Controller
             //The restaurant
             $restaurant = Restorant::findOrFail($restorantID);
 
+            //Set config based on restaurant
+            config(['app.timezone' => $restaurant->getConfig('time_zone',config('app.timezone'))]);
+
+            
+
             $enablePayments=true;
             if(config('app.isqrsaas')){
                 if($restaurant->currency!=""&&$restaurant->currency!=config('settings.cashier_currency')){
-                    $enablePayments=false;
+                    //$enablePayments=false; -- DO this check only when money goes to admin 
                 }
-            
             }
 
             //Change currency
             \App\Services\ConfChanger::switchCurrency($restaurant);
 
             //Create all the time slots
-            $timeSlots = $restaurant->hours ? $this->getTimieSlots($restaurant->hours->toArray()) : [];
+            $timeSlots = $this->getTimieSlots($restaurant);
 
-            //Working hours
-            $ourDateOfWeek = date('N') - 1;
-
-            $format = 'G:i';
-            if (config('settings.time_format') == 'AM/PM') {
-                $format = 'g:i A';
-            }
-
-            $openingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_from'])) : null;
-            $closingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_to'])) : null;
-
+           
             //user addresses
             $addresses = [];
             if (config('app.isft')) {
@@ -158,6 +162,19 @@ class CartController extends Controller
                 $tablesData[$table->id] = $table->restoarea ? $table->restoarea->name.' - '.$table->name : $table->name;
             }
 
+
+            $extraPayments=[];
+            foreach (Module::all() as $key => $module) {
+                if($module->get('isPaymentModule')){
+                    array_push($extraPayments,$module->get('alias'));
+                }
+            }
+  
+            $businessHours=$restaurant->getBusinessHours();
+            $now = new \DateTime('now');
+
+            $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
+            $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
         
 
             $params = [
@@ -166,9 +183,11 @@ class CartController extends Controller
                 'tables' =>  ['ftype'=>'select', 'name'=>'', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true],
                 'restorant' => $restaurant,
                 'timeSlots' => $timeSlots,
-                'openingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_from'] ? $openingTime : null,
-                'closingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_to'] ? $closingTime : null,
+                'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
+                'closingTime' => $businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null,
                 'addresses' => $addresses,
+                'fieldsToRender'=>$fieldsToRender,
+                'extraPayments'=>$extraPayments,
             ];
 
             return view('cart')->with($params);
@@ -235,9 +254,6 @@ class CartController extends Controller
             $format = 'g:i A';
         }
 
-        $openingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_from'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_from'])) : null;
-        $closingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_to'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_to'])) : null;
-
         //tables
         $tables = Tables::where('restaurant_id', $restorant->id)->get();
         $tablesData = [];
@@ -253,10 +269,16 @@ class CartController extends Controller
 
         $currentEnvLanguage = isset(config('config.env')[2]['fields'][0]['data'][config('app.locale')]) ? config('config.env')[2]['fields'][0]['data'][config('app.locale')] : 'UNKNOWN';
 
-        return $response = [
+        $businessHours=$restorant->getBusinessHours();
+        $now = new \DateTime('now');
+
+        $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
+        $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
+
+        return  [
             'restorant' => $restorant,
-            'openingTime' => $openingTime,
-            'closingTime' => $closingTime,
+            'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
+            'closingTime' => $businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null,
             'usernames' => $usernames,
             'canDoOrdering'=>$canDoOrdering,
             'currentLanguage'=>$currentEnvLanguage,

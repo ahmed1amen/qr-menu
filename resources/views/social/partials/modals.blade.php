@@ -15,12 +15,13 @@
           <input class="form-control my-1" type="text" name="phone" placeholder="{{ __('whatsapp.modal_input_phone')}}" required>
           <button disabled class="btn btn-success my-3" id="submitRegister" type="submit">{{ __('whatsapp.join_now')}}</button>
 
-          <div class="form-check"><input type="checkbox" name="termsCheckBox" id="termsCheckBox" class="form-check-input"> <label for="terms" class="form-check-label">
-            &nbsp;&nbsp;{{__('whatsapp.i_agree_to')}}
-            <a href="{{config('settings.link_to_ts')}}" target="_blank" style="text-decoration: underline;">{{__('whatsapp.terms_of_service')}}</a> {{__('whatsapp.and')}}
-            <a href="{{config('settings.link_to_pr')}}" target="_blank" style="text-decoration: underline;">{{__('whatsapp.privacy_policy')}}</a>.
-        </label></div>
-
+          <div class="form-check"><input type="checkbox" name="termsCheckBox" id="termsCheckBox" class="form-check-input"> 
+            <label for="terms" class="form-check-label">
+              &nbsp;&nbsp;{{__('whatsapp.i_agree_to')}}
+              <a href="{{config('settings.link_to_ts')}}" target="_blank" style="text-decoration: underline;">{{__('whatsapp.terms_of_service')}}</a> {{__('whatsapp.and')}}
+              <a href="{{config('settings.link_to_pr')}}" target="_blank" style="text-decoration: underline;">{{__('whatsapp.privacy_policy')}}</a>.
+            </label>
+          </div>
         </form>
       </div>
     </div>

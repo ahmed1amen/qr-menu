@@ -136,16 +136,25 @@
          <button onclick="location.href='{{$order->payment_link}}'" class="btn btn-success">{{ __('Pay now') }}</button>
      @endif
      <hr />
-     @if(config('app.isft'))
-         <h4>{{ __("Delivery method") }}: {{ $order->delivery_method==1?__('Delivery'):__('Pickup') }}</h4>
+     @if(config('app.isft') || config('app.iswp'))
+         <h4>{{ __("Delivery method") }}: {{ $order->getExpeditionType() }}</h4>
          <h3>{{ __("Time slot") }}: @include('orders.partials.time', ['time'=>$order->time_formated])</h3>
      @else
-         <h4>{{ __("Dine method") }}: {{ $order->delivery_method==3?__('Dine in'):__('Takeaway') }}</h4>
+         <h4>{{ __("Dine method") }}: {{ $order->getExpeditionType() }}</h4>
          @if ($order->delivery_method!=3)
              <h3>{{ __("Time slot") }}: @include('orders.partials.time', ['time'=>$order->time_formated])</h3>
          @endif
-         
      @endif
+
+     @if(isset($custom_data)&&count($custom_data)>0)
+        <hr />
+        <h3>{{ __(config('settings.label_on_custom_fields')) }}</h3>
+        @foreach ($custom_data as $keyCutom => $itemValue)
+            <h4>{{ __("custom.".$keyCutom) }}: {{ $itemValue }}</h4>
+        @endforeach
+     @endif
+
+     
  
  
  </div>

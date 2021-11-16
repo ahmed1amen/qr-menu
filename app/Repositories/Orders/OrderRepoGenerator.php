@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Repositories\Orders;
-use Mollie\Api\Exceptions\ApiException;
 
 class OrderRepoGenerator extends BaseOrderRepository
 {
@@ -38,10 +37,8 @@ class OrderRepoGenerator extends BaseOrderRepository
         if($hasPayment){
             if($isStripe){
                 $paymentType="Stripe";
-            }else if($request->payment_method=="paypal"){
-                $paymentType="PayPal";
-            }else if($request->payment_method=="mollie"){
-                $paymentType="Mollie";
+            }else {
+                $paymentType="LinkPayment";
             }
         }
 

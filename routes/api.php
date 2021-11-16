@@ -37,6 +37,100 @@ Route::post('/drivergettoken', 'DriverController@getToken')->name('driver.getTok
 |--------------------------------------------------------------------------
 |
 */
+
+//DRIVER
+Route::prefix('v2/driver')->group(function () {
+    /**
+     * AUTH
+     */
+    //Auth /api/v2/driver/auth
+    Route::prefix('auth')->name('driver.auth.')->group(function () {
+        Route::post('gettoken', 'API\Driver\AuthController@getToken')->name('getToken'); 
+        Route::post('register', 'API\Driver\AuthController@register')->name('register'); 
+        Route::group(['middleware' => 'auth:api'], function () {
+            Route::get('data', 'API\Driver\AuthController@getUseData')->name('getUseData'); 
+            Route::get('driveronline', 'API\Driver\AuthController@goOnline')->name('goonline');
+            Route::get('drveroffline', 'API\Driver\AuthController@goOffline')->name('gooffline');
+        });   
+    });
+
+    /**
+     * Settings - uses the same from client
+     */
+    //Settings /api/v2/driver/settings
+    Route::prefix('settings')->name('driver.settings.')->group(function () {
+        Route::get('/', 'API\Client\SettingsController@index')->name('indexapi');
+    });
+
+    //NEEDS AUTHENTICATION
+    Route::group(['middleware' => 'auth:api'], function () {
+
+        /**
+         * ORDERS
+         */
+
+        //Orders /api/v2/client/orders
+        Route::prefix('orders')->name('driver.orders.')->group(function () {
+            Route::get('/', 'API\Driver\OrdersController@index');
+            Route::get('/order/{order}', 'API\Driver\OrdersController@order');
+            Route::get('earnings','API\Driver\OrdersController@earnings');
+            Route::get('updateorderstatus/{order}/{status}', 'API\Driver\OrdersController@updateOrderStatus')->name('driver.updateorderstatus');
+            Route::get('updateorderlocation/{order}/{lat}/{lng}', 'API\Driver\OrdersController@orderTracking')->name('driver.updateorderlocation');
+            Route::get('rejectorder/{order}', 'API\Driver\OrdersController@rejectOrder')->name('driver.rejectorder');
+            Route::get('acceptorder/{order}', 'API\Driver\OrdersController@acceptOrder')->name('driver.acceptorder');
+        });
+    });
+
+
+});
+
+
+//Vendor
+Route::prefix('v2/vendor')->group(function () {
+    /**
+     * AUTH
+     */
+    //Auth /api/v2/vendor/auth
+    Route::prefix('auth')->name('vendor.auth.')->group(function () {
+        Route::post('gettoken', 'API\Vendor\AuthController@getToken')->name('getToken'); 
+        Route::post('register', 'API\Vendor\AuthController@register')->name('register'); 
+        Route::group(['middleware' => 'auth:api'], function () {
+            Route::get('data', 'API\Vendor\AuthController@getUseData')->name('getUseData'); 
+        });   
+    });
+
+    /**
+     * Settings - uses the same from client
+     */
+    //Settings /api/v2/vendor/settings
+    Route::prefix('settings')->name('vendor.settings.')->group(function () {
+        Route::get('/', 'API\Client\SettingsController@index')->name('indexapivendor');
+    });
+
+    //NEEDS AUTHENTICATION
+    Route::group(['middleware' => 'auth:api'], function () {
+
+        /**
+         * ORDERS
+         */
+
+        //Orders /api/v2/client/orders
+        Route::prefix('orders')->name('vendor.orders.')->group(function () {
+            Route::get('/', 'API\Vendor\OrdersController@index');
+            Route::get('/order/{order}', 'API\Vendor\OrdersController@order');
+            Route::get('earnings','API\Vendor\OrdersController@earnings');
+            Route::get('updateorderstatus/{order}/{status}', 'API\Vendor\OrdersController@updateOrderStatus')->name('vendor.updateorderstatus');
+            Route::get('updateorderlocation/{order}/{lat}/{lng}', 'API\Vendor\OrdersController@orderTracking')->name('vendor.updateorderlocation');
+            Route::get('rejectorder/{order}', 'API\Vendor\OrdersController@rejectOrder')->name('vendor.rejectorder');
+            Route::get('acceptorder/{order}', 'API\Vendor\OrdersController@acceptOrder')->name('vendor.acceptorder');
+        });
+    });
+
+
+});
+
+
+//CLIENT
 Route::prefix('v2/client')->group(function () {
     
     /**
@@ -58,7 +152,7 @@ Route::prefix('v2/client')->group(function () {
      */
     //Settings /api/v2/client/settings
     Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', 'API\Client\SettingsController@index')->name('index');
+        Route::get('/', 'API\Client\SettingsController@index')->name('indexapiclient');
     });
    
 
@@ -89,7 +183,7 @@ Route::prefix('v2/client')->group(function () {
         //Orders /api/v2/client/orders
         Route::prefix('orders')->name('orders.')->group(function () {
             Route::get('/', 'API\Client\OrdersController@index');
-            Route::post('/', 'API\Client\OrdersController@store')->name('store');
+            Route::post('/', 'API\Client\OrdersController@store')->name('storeapi');
         });
 
 
