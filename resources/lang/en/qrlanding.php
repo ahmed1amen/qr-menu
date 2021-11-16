@@ -1,6 +1,6 @@
 <?php
 
-return [
+return array (
   'below' => 'below',
   'contactles_menu' => 'Contacless QR Menu',
   'cookies' => 'Cookies',
@@ -83,4 +83,4 @@ return [
   'testimonials_subtitle' => 'Used by top restaurants worldwide',
   'testimonials_title' => 'Restaurants and Bars that love our QRs',
   'year' => 'year',
-];
+);

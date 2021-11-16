@@ -7,7 +7,7 @@
 @endif
 
 @section('content')
-    @include('users.partials.header', ['title' => __(''),])
+    @include('users.partials.header', ['title' => ""])
 
 
     <div class="container-fluid mt--7">

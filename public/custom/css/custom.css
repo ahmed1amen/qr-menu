@@ -2578,3 +2578,8 @@ background: #707070;
 .tetimonial_text {
     margin-top: 12px;
 }
+
+/*notify-laravel-css*/
+.inset-0 {
+    z-index: 999 !important; 
+}

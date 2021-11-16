@@ -243,7 +243,7 @@ class BaseOrderRepository extends Controller
 
         //Notify owner with pusher
         if (strlen(config('broadcasting.connections.pusher.secret')) > 4) {
-            event(new PusherNewOrder($this->order, __('notications.notification_neworder')));
+            event(new PusherNewOrder($this->order, __('notifications_notification_neworder')));
         }
     }
 }

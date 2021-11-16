@@ -19,7 +19,7 @@
                             @if($hasDemoRestaurants)
                                 <a href="{{ route('admin.restaurants.removedemo') }}" class="btn btn-sm btn-danger">{{ __('Remove demo data') }}</a>
                             @endif
-                            <a href="{{ route('systemstatus') }}" class="btn btn-sm btn-danger">{{ __('settings.system_status') }}</a>
+                            <a href="{{ route('systemstatus') }}" class="btn btn-sm btn-danger">{{ __('settings_system_status') }}</a>
                             <a href="{{ route('admin.regenerate.sitemap') }}" class="btn btn-sm btn-warning">{{ __('Regenerate sitemap') }}</a>
                             @if($newVersionAvailable)
                                 <a href="{{ route('settings.index') }}?do_update=true" class="btn btn-sm btn-success">{{ __('New version avaialbe') }} - v{{$newVersion}}</a>

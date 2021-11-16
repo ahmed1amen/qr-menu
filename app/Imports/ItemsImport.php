@@ -25,13 +25,18 @@ class ItemsImport implements ToModel, WithHeadingRow
         $category = Categories::where(['name' => $row['category'], 'restorant_id' => $this->restorant->id])->first();
 
         if ($category != null) {
-            return new Items([
-                'name' => $row['name'],
-                'description' => $row['description'],
-                'price' => $row['price'],
-                'category_id' => $category->id,
-                'image' => $row['image'],
-            ]);
+            
+            $item = Items::where(['name' => $row['name'], 'category_id' => $category->id])->first();
+        
+            if($item == null){       
+                return new Items([
+                    'name' => $row['name'],
+                    'description' => $row['description'],
+                    'price' => $row['price'],
+                    'category_id' => $category->id,
+                    'image' => $row['image'],
+                ]);
+            }
         } else {
             $category = new Categories;
             $category->name = $row['category'];

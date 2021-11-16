@@ -412,7 +412,12 @@ class OrderController extends Controller
                 $client=$order['client']['name'];
             }else{
                 if(!config('settings.is_whatsapp_ordering_mode')){
-                    $client=($order['table']['restoarea'] ? $order['table']['restoarea']['name'].' - '.$order['table']['name'] : $order['table']['name']);
+                    //QR
+                    if($order['table']&&$order['table']['restoarea']&&$order['table']['restoarea']['name']&&$order['table']['name']){
+                        $client=$order['table']['restoarea']['name'].' - '.$order['table']['name'];
+                    }else if($order['table']&&$order['table']['name']){
+                        $client=$order['table']['name'];
+                    }
                 }else{
                     //WhatsApp
                     $client=$order['phone'];

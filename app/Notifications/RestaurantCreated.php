@@ -48,14 +48,14 @@ class RestaurantCreated extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->greeting(__('notications.hello', ['username' => $this->user->name]))
-                    ->subject(__('notications.acc_create', ['app_name'=>env('APP_NAME', '')]))
-                    ->line(__('notications.rest_acc_created', ['restoname'=>$this->restaurant->name]))
-                    ->action(__('notications.login'), url(config('app.url').'/login'))
-                    ->line(__('notications.username', ['email'=>$this->user->email]))
-                    ->line(__('notications.password', ['password'=>$this->password]))
-                    ->line(__('notications.reset_pass'))
-                    ->line(__('notications.thanks_for_using_us'));
+                    ->greeting(__('notifications_hello', ['username' => $this->user->name]))
+                    ->subject(__('notifications_acc_create', ['app_name'=>env('APP_NAME', '')]))
+                    ->line(__('notifications_rest_acc_created', ['restoname'=>$this->restaurant->name]))
+                    ->action(__('notifications_login'), url(config('app.url').'/login'))
+                    ->line(__('notifications_username', ['email'=>$this->user->email]))
+                    ->line(__('notifications_password', ['password'=>$this->password]))
+                    ->line(__('notifications_reset_pass'))
+                    ->line(__('notifications_thanks_for_using_us'));
     }
 
     /**

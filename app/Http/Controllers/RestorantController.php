@@ -479,11 +479,6 @@ class RestorantController extends Controller
         //Send welcome email
 
         //welcome notification
-        /*try {
-            $owner->notify(new WelcomeNotification($owner));
-        } catch (\Exception $e) {
-           return view('restorants.error_location',['message'=>'settings.site_run_into_smtp_error']);
-        }*/
         //Create Restorant
         $restaurant = new Restorant;
         $restaurant->name = strip_tags($request->name);
@@ -504,10 +499,10 @@ class RestorantController extends Controller
             //QR SaaS - or directly approve
             $this->makeRestaurantActive($restaurant);
 
-            return redirect()->route('front')->withStatus(__('notications.thanks_andcheckemail'));
+            return redirect()->route('front')->withStatus(__('notifications_thanks_andcheckemail'));
         } else {
             //Foodtiger
-            return redirect()->route('newrestaurant.register')->withStatus(__('notications.thanks_and_review'));
+            return redirect()->route('newrestaurant.register')->withStatus(__('notifications_thanks_and_review'));
         }
     }
 
@@ -573,7 +568,7 @@ class RestorantController extends Controller
             $table = Tables::where('id', $request->table_id)->get()->first();
 
             if (config('settings.enable_call_waiter') && $CAN_USE_PUSHER) {
-                $msg = __('notications.notification_callwaiter');
+                $msg = __('notifications_notification_callwaiter');
 
                 event(new CallWaiter($table, $msg));
 

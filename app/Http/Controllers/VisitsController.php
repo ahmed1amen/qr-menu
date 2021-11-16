@@ -89,8 +89,8 @@ class VisitsController extends Controller
         $fields = $this->getFields($class);
         $fields[1]['required'] = false;
         unset($fields[5]);
-        array_push($fields, ['class'=>$class, 'ftype'=>'select', 'name'=>'customers.created_by', 'id'=>'by', 'placeholder'=>'Select who created it', 'data'=>['2'=>__('customers.him_self'), '1'=>__('customers.by_restaurant')], 'required'=>false]);
-        array_push($fields, ['class'=>$class, 'editclass'=>' daterange ', 'ftype'=>'input', 'name'=>'customers.visit_time', 'id'=>'created_at', 'placeholder'=>'Created time', 'required'=>false]);
+        array_push($fields, ['class'=>$class, 'ftype'=>'select', 'name'=>'customers_created_by', 'id'=>'by', 'placeholder'=>'Select who created it', 'data'=>['2'=>__('customers_him_self'), '1'=>__('customers_by_restaurant')], 'required'=>false]);
+        array_push($fields, ['class'=>$class, 'editclass'=>' daterange ', 'ftype'=>'input', 'name'=>'customers_visit_time', 'id'=>'created_at', 'placeholder'=>'Created time', 'required'=>false]);
 
         $items = $this->provider::where('restaurant_id', $this->getRestaurant()->id);
 
@@ -138,7 +138,7 @@ class VisitsController extends Controller
                     'customer_email'=>$item->email,
                     'customer_phone_number'=>$item->phone_number,
                     'note'=>$item->note,
-                    'by'=>$item->by.'' == '1' ? __('customers.by_restaurant') : __('customers.him_self'),
+                    'by'=>$item->by.'' == '1' ? __('customers_by_restaurant') : __('customers_him_self'),
                   ];
                 array_push($itemsForExport, $item);
             }

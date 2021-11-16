@@ -19,9 +19,11 @@
                 <div class="d-flex justify-content-center">
                     <div class="col-8">
                         <h5 class="mt-0 mb-5 heading-small text-muted">
-                            {{ __('Your order is created. You will be notified for further information.' )}}
+                            {{ __("Your order is created. You will be notified for further information.") }}
                         </h5>
-                        <div class="font-weight-300 mb-5">{{ __('Thanks for your purchase').", " }}<span class="h3">{{ $order->restorant->name }}</span></div>
+                        <div class="font-weight-300 mb-5">
+                            {{ __("Thanks for your purchase") }}, 
+                        <span class="h3">{{ $order->restorant->name }}</span></div>
                         @if (config('settings.wildcard_domain_ready'))
                             <a href="{{ $order->restorant->getLinkAttribute() }}" class="btn btn-outline-primary btn-sm">{{ __('Go back to restaurant') }}</a>
                         @else

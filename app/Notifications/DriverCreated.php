@@ -46,12 +46,12 @@ class DriverCreated extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                ->greeting(__('notications.hello', ['username' => $this->user->name]))
-                ->line(__('notications.driver_acc_created', ['app_name' => config('app.name')]))
-                ->action('notications.login', url(config('app.url').'/login'))
-                ->line(__('notications.username', ['email'=>$this->user->email]))
-                ->line(__('notications.password', ['password'=>$this->password]))
-                ->line(__('notications.reset_pass'));
+                ->greeting(__('notifications_hello', ['username' => $this->user->name]))
+                ->line(__('notifications_driver_acc_created', ['app_name' => config('app.name')]))
+                ->action('notifications_login', url(config('app.url').'/login'))
+                ->line(__('notifications_username', ['email'=>$this->user->email]))
+                ->line(__('notifications_password', ['password'=>$this->password]))
+                ->line(__('notifications_reset_pass'));
     }
 
     /**

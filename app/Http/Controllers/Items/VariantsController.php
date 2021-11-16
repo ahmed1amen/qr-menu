@@ -43,7 +43,7 @@ class VariantsController extends Controller
     public function index(Items $item)
     {
         return view('items.variants.index', ['setup' => [
-            'title'=>'Variants for '.$item->name,
+            'title'=>__('Variants for')." ".$item->name,
             'action_link'=>route('items.variants.create', ['item'=>$item->id]),
             'action_name'=>'Add new variant',
             'items'=>$item->variants()->paginate(10),
@@ -80,7 +80,7 @@ class VariantsController extends Controller
         }
 
         return view('general.form', ['setup' => [
-            'title'=>'New variant for '.$item->name,
+            'title'=>__('New variant for')." ".$item->name,
             'action_link'=>route('items.variants.index', ['item'=>$item->id]),
             'action_name'=>__('Back'),
             'iscontent'=>true,

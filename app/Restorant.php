@@ -104,7 +104,7 @@ class Restorant extends MyModel
     {
         parent::boot();
         self::deleting(function (self $restaurant) {
-            if (config('settings.is_demo') | config('settings.is_demo')) {
+            if (config('settings.is_demo')) {
                 return false; //In demo disable deleting
             } else {
                 //Delete orders
@@ -134,6 +134,9 @@ class Restorant extends MyModel
 
                 //Delete Visits to this restaruant
                 $restaurant->visits()->forceDelete();
+
+                //Delete Local menus
+                $restaurant->localmenus()->forceDelete();
 
                 return true;
             }

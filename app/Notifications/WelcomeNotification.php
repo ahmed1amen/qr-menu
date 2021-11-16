@@ -45,16 +45,16 @@ class WelcomeNotification extends Notification
     {
         if ($this->user->active.'' == '1') {
             return (new MailMessage)
-            ->greeting(__('notications.hello', ['username' => $this->user->name]))
-            ->subject(__('notications.thanks', ['app_name' => config('app.name')]))
-            ->action(__('notications.visit', ['app_name' => config('app.name')]), url(config('app.url')))
-            ->line(__('notications.regdone'));
+            ->greeting(__('notifications_hello', ['username' => $this->user->name]))
+            ->subject(__('notifications_thanks', ['app_name' => config('app.name')]))
+            ->action(__('notifications_visit', ['app_name' => config('app.name')]), url(config('app.url')))
+            ->line(__('notifications_regdone'));
         } else {
             return (new MailMessage)
-            ->greeting(__('notications.hello', ['username' => $this->user->name]))
-            ->subject(__('notications.thanks', ['app_name' => config('app.name')]))
-            ->action(__('notications.visit', ['app_name' => config('app.name')]), url(config('app.url')))
-            ->line(__('notications.adminapprove'));
+            ->greeting(__('notifications_hello', ['username' => $this->user->name]))
+            ->subject(__('notifications_thanks', ['app_name' => config('app.name')]))
+            ->action(__('notifications_visit', ['app_name' => config('app.name')]), url(config('app.url')))
+            ->line(__('notifications_adminapprove'));
         }
     }
 

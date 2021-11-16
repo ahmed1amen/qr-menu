@@ -42,10 +42,10 @@ class CloseAccount extends Notification
     public function toMail($notifiable)
     {
         return (new MailMessage)
-                    ->greeting(__('notications.hello', ['username' => $this->user->name]))
-                    ->line(__('notications.acc_closed_sub', ['app_name' => config('app.name')]))
-                    ->line(__('notications.acc_closed_attachment', ['app_name' => config('app.name')]))
-                    ->subject(__('notications.acc_closed', ['app_name' => config('app.name')]))
+                    ->greeting(__('notifications_hello', ['username' => $this->user->name]))
+                    ->line(__('notifications_acc_closed_sub', ['app_name' => config('app.name')]))
+                    ->line(__('notifications_acc_closed_attachment', ['app_name' => config('app.name')]))
+                    ->subject(__('notifications_acc_closed', ['app_name' => config('app.name')]))
                     ->attachData($this->data, 'data.json', [
                         'mime' => 'application/json',
                     ]);

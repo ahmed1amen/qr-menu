@@ -7,7 +7,7 @@
             <td>{{ $item->email }}</td>
             <td>{{ $item->phone_number }}</td>
             <td>{{ $item->note }}</td>
-            <td>{{ $item->by=="1"?__('customers.by_restaurant'):__('customers.him_self') }}</td>
+            <td>{{ $item->by=="1"?__('customers_by_restaurant'):__('customers_him_self') }}</td>
             <td>{{ $item->created_at }}</td>
             @include('partials.tableactions',$setup)
         </tr> 

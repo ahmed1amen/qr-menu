@@ -32,5 +32,11 @@
                 width: 50%  !important;
 }
 
+/*notify-laravel-css*/
+.inset-0 {
+        z-index: 999 !important;
+}
+
+
 
 

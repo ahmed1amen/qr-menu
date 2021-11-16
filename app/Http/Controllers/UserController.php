@@ -97,7 +97,7 @@ class UserController extends Controller
             //delete user
             $user->delete();
 
-            return redirect()->route('front')->withStatus(__('notications.acc_closed_msg'));
+            return redirect()->route('front')->withStatus(__('notifications_acc_closed_msg'));
         } else {
             $user->delete();
 

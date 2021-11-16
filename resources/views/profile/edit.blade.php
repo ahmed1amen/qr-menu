@@ -2,7 +2,7 @@
 
 @section('content')
     @include('users.partials.header', [
-        'title' => __(''),
+        'title' => "",
     ])
 
     <div class="container-fluid mt--7">

@@ -34,7 +34,7 @@
                                     <div class="form-group">
                                         <br />
                                         <label class="form-control-label" for="quantity">{{ __('Quantity') }}</label>
-                                        <input type="number" name="quantity" id="quantity" class="form-control form-control-alternative" placeholder="{{ __('1') }}" value="1" required autofocus>
+                                        <input type="number" name="quantity" id="quantity" class="form-control form-control-alternative" placeholder="1" value="1" required autofocus>
                                     </div>
                                     <div class="quantity-btn">
                                         <div id="addToCart1">
@@ -91,7 +91,7 @@
             <div class="modal-body p-0">
                 <div class="card">
                     <div class="card-header bg-white text-center">
-                        <img class="rounded" src="{{ $restorant->icon }}" width="90px" height="90px"></img>
+                        <img class="rounded img-center" src="{{ $restorant->icon }}" width="90px" height="90px"></img>
                         <h4 class="heading mt-4">{{ $restorant->name }} &nbsp;@if(count($restorant->ratings))<span><i class="fa fa-star" style="color: #dc3545"></i> <strong>{{ number_format($restorant->averageRating, 1, '.', ',') }} <span class="small">/ 5 ({{ count($restorant->ratings) }})</strong></span></span>@endif</h4>
                         <p class="description">{{ $restorant->description }}</p>
                         @if(!empty($openingTime) && !empty($closingTime))

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'version' => '2.1.1',
+    'version' => '2.1.2',
     'env'=>[
         [
             'name'=>'Setup',
@@ -99,7 +99,7 @@ return [
                 ['title'=>'Paypal mode', 'key'=>'PAYPAL_MODE', 'value'=>'sandbox', 'ftype'=>'select', 'data'=>['sandbox'=>'Development - sandbox', 'live'=>'Production - live']],
 
                 ['separator'=>'Mollie', 'title'=>'Enable mollie for payments when ordering', 'key'=>'ENABLE_MOLLIE', 'value'=>'false', 'ftype'=>'bool'],
-                ['title'=>'Mollie client key', 'key'=>'MOLLIE_KEY', 'value'=>''],
+                ['title'=>'Mollie client key', 'key'=>'MOLLIE_KEY', 'value'=>'test_W7vgVS4bUTVarzBm39wjUk7SRV3Aek'],
 
                 ['separator'=>'Local bank transfer', 'title'=>'Local bank transfer explanation', 'key'=>'LOCAL_TRANSFER_INFO', 'value'=>'Wire us the plan amout on the following bank accoun. And inform us about the wire.', 'onlyin'=>'qrsaas'],
                 ['title'=>'Bank Account', 'key'=>'LOCAL_TRANSFER_ACCOUNT', 'value'=>'IBAN: 12112121212121', 'onlyin'=>'qrsaas'],

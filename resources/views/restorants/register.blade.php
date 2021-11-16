@@ -7,7 +7,7 @@
 
 @section('content')
     @include('users.partials.header', [
-        'title' => __(''),
+        'title' => "",
     ])
 
 

@@ -9,9 +9,12 @@ use App\Models\Variants;
 use App\Order;
 use App\Restorant;
 use App\Tables;
+use App\Plans;
 use Carbon\Carbon;
 use Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use App\Services\ConfChanger;
 
 class CartController extends Controller
 {
@@ -97,77 +100,170 @@ class CartController extends Controller
         ]);
     }
 
-    
-
-   
-
-    
-
-    
-
     public function cart()
     {
-        $restorantID = null;
-        foreach (Cart::getContent() as $key => $cartItem) {
-            $restorantID = $cartItem->attributes->restorant_id;
-            break;
+        $isEmpty = false;
+        if (Cart::getContent()->isEmpty()) {
+            $isEmpty = true;
         }
 
-        //The restaurant
-        $restaurant = Restorant::findOrFail($restorantID);
+        if(!$isEmpty){
+            //Cart is not empty
 
-        $enablePayments=true;
-        if(config('app.isqrsaas')){
-            if($restaurant->currency!=""&&$restaurant->currency!=config('settings.cashier_currency')){
-                $enablePayments=false;
+            $restorantID = null;
+            foreach (Cart::getContent() as $key => $cartItem) {
+                $restorantID = $cartItem->attributes->restorant_id;
+                break;
             }
-           
+
+            
+
+            //The restaurant
+            $restaurant = Restorant::findOrFail($restorantID);
+
+            $enablePayments=true;
+            if(config('app.isqrsaas')){
+                if($restaurant->currency!=""&&$restaurant->currency!=config('settings.cashier_currency')){
+                    $enablePayments=false;
+                }
+            
+            }
+
+            //Change currency
+            \App\Services\ConfChanger::switchCurrency($restaurant);
+
+            //Create all the time slots
+            $timeSlots = $restaurant->hours ? $this->getTimieSlots($restaurant->hours->toArray()) : [];
+
+            //Working hours
+            $ourDateOfWeek = date('N') - 1;
+
+            $format = 'G:i';
+            if (config('settings.time_format') == 'AM/PM') {
+                $format = 'g:i A';
+            }
+
+            $openingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_from'])) : null;
+            $closingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_to'])) : null;
+
+            //user addresses
+            $addresses = [];
+            if (config('app.isft')) {
+                $addresses = $this->getAccessibleAddresses($restaurant, auth()->user()->addresses->reverse());
+            }
+
+            $tables = Tables::where('restaurant_id', $restaurant->id)->get();
+            $tablesData = [];
+            foreach ($tables as $key => $table) {
+                $tablesData[$table->id] = $table->restoarea ? $table->restoarea->name.' - '.$table->name : $table->name;
+            }
+
+        
+
+            $params = [
+                'enablePayments'=>$enablePayments,
+                'title' => 'Shopping Cart Checkout',
+                'tables' =>  ['ftype'=>'select', 'name'=>'', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true],
+                'restorant' => $restaurant,
+                'timeSlots' => $timeSlots,
+                'openingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_from'] ? $openingTime : null,
+                'closingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_to'] ? $closingTime : null,
+                'addresses' => $addresses,
+            ];
+
+            return view('cart')->with($params);
+        }else{
+            //Cart is empty
+            if(config('app.isft')) {
+                return redirect()->route('front')->withError('Your cart is empty!');
+            }else{
+                $previousOrders = Cookie::get('orders') ? Cookie::get('orders') : '';
+                $previousOrderArray = array_filter(explode(',', $previousOrders));
+
+                if(count($previousOrderArray) > 0){
+                    foreach($previousOrderArray as $orderId){
+                        $restorant = Order::where(['id'=>$orderId])->get()->first()->restorant;
+                       
+                        $restorantInfo = $this->getRestaurantInfo($restorant, $previousOrderArray);
+
+                        return view('restorants.show', [
+                            'restorant' => $restorantInfo['restorant'],
+                            'openingTime' => $restorantInfo['openingTime'],
+                            'closingTime' => $restorantInfo['closingTime'],
+                            'usernames' => $restorantInfo['usernames'],
+                            'canDoOrdering'=>$restorantInfo['canDoOrdering'],
+                            'currentLanguage'=>$restorantInfo['currentLanguage'],
+                            'showLanguagesSelector'=>$restorantInfo['showLanguagesSelector'],
+                            'hasGuestOrders'=>$restorantInfo['hasGuestOrders'],
+                            'fields'=>$restorantInfo['fields'],
+                        ])->withError(__('Your cart is empty!'));
+                    }
+                }else{
+                    return redirect()->route('front')->withError('Your cart is empty!');
+                }                
+            }
         }
+    }
 
-        //Change currency
-        \App\Services\ConfChanger::switchCurrency($restaurant);
+    public function getRestaurantInfo($restorant, $previousOrderArray)
+    {
+        //In QRsaas with plans, we need to check if they can add new items.
+        $currentPlan = Plans::findOrFail($restorant->user->mplanid());
+        $canDoOrdering = $currentPlan->enable_ordering == 1;
 
-        //Create all the time slots
-        $timeSlots = $restaurant->hours ? $this->getTimieSlots($restaurant->hours->toArray()) : [];
+        //ratings usernames
+        $usernames = [];
+        if ($restorant && $restorant->ratings) {
+            foreach ($restorant->ratings as $rating) {
+                $user = User::where('id', $rating->user_id)->get()->first();
+
+                if (! array_key_exists($user->id, $usernames)) {
+                    $new_obj = (object) [];
+                    $new_obj->name = $user->name;
+
+                    $usernames[$user->id] = (object) $new_obj;
+                }
+            }
+        }
 
         //Working hours
         $ourDateOfWeek = date('N') - 1;
 
+        //dd($ourDateOfWeek);
         $format = 'G:i';
         if (config('settings.time_format') == 'AM/PM') {
             $format = 'g:i A';
         }
 
-        $openingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_from'])) : null;
-        $closingTime = $restaurant->hours ? date($format, strtotime($restaurant->hours[$ourDateOfWeek.'_to'])) : null;
+        $openingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_from'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_from'])) : null;
+        $closingTime = $restorant->hours && $restorant->hours[$ourDateOfWeek.'_to'] ? date($format, strtotime($restorant->hours[$ourDateOfWeek.'_to'])) : null;
 
-        //user addresses
-        $addresses = [];
-        if (config('app.isft')) {
-            $addresses = $this->getAccessibleAddresses($restaurant, auth()->user()->addresses->reverse());
-        }
-
-        $tables = Tables::where('restaurant_id', $restaurant->id)->get();
+        //tables
+        $tables = Tables::where('restaurant_id', $restorant->id)->get();
         $tablesData = [];
         foreach ($tables as $key => $table) {
             $tablesData[$table->id] = $table->restoarea ? $table->restoarea->name.' - '.$table->name : $table->name;
         }
 
-       
+        //Change Language
+        ConfChanger::switchLanguage($restorant);
 
-        $params = [
-            'enablePayments'=>$enablePayments,
-            'title' => 'Shopping Cart Checkout',
-            'tables' =>  ['ftype'=>'select', 'name'=>'', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true],
-            'restorant' => $restaurant,
-            'timeSlots' => $timeSlots,
-            'openingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_from'] ? $openingTime : null,
-            'closingTime' => $restaurant->hours && $restaurant->hours[$ourDateOfWeek.'_to'] ? $closingTime : null,
-            'addresses' => $addresses,
+        //Change currency
+        ConfChanger::switchCurrency($restorant);
+
+        $currentEnvLanguage = isset(config('config.env')[2]['fields'][0]['data'][config('app.locale')]) ? config('config.env')[2]['fields'][0]['data'][config('app.locale')] : 'UNKNOWN';
+
+        return $response = [
+            'restorant' => $restorant,
+            'openingTime' => $openingTime,
+            'closingTime' => $closingTime,
+            'usernames' => $usernames,
+            'canDoOrdering'=>$canDoOrdering,
+            'currentLanguage'=>$currentEnvLanguage,
+            'showLanguagesSelector'=>env('ENABLE_MILTILANGUAGE_MENUS', false) && $restorant->localmenus()->count() > 1,
+            'hasGuestOrders'=>count($previousOrderArray) > 0,
+            'fields'=>[['class'=>'col-12', 'classselect'=>'noselecttwo', 'ftype'=>'select', 'name'=>'Table', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true]],
         ];
-
-        //Open for all
-        return view('cart')->with($params);
     }
 
     public function clear(Request $request)

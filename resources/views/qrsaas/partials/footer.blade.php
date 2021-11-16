@@ -63,9 +63,9 @@
         <div class="row">
             <div class="col pb-4 mb-md-0">
                 <div class="d-flex text-center justify-content-center align-items-center">
-                    <p class="font-weight-normal mb-0">© <a href="{{ config('app.url') }}"
-                            target="_blank">{{  config('app.name') }}</a></a>
-                        <span class="current-year">{{ date('Y') }}</span>. {{ __('All rights reserved').</p>
+                    <p class="font-weight-normal mb-0">© <a href="{{ config('app.url') }}" target="_blank">{{  config('app.name') }}</a>
+                        <span class="current-year">{{ date('Y') }}</span>. {{ __('All rights reserved') }}.
+                    </p>
                 </div>
             </div>
         </div>

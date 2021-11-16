@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => __('settings.system_status')])
+@extends('layouts.app', ['title' => __('settings_system_status')])
 
 @section('content')
 <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
@@ -10,7 +10,7 @@
                 <div class="card-header bg-white border-0">
                     <div class="row align-items-center">
                         <div class="col-8">
-                            <h3 class="mb-0">{{ __('settings.system_status') }}</h3>
+                            <h3 class="mb-0">{{ __('settings_system_status') }}</h3>
                         </div>
                         <div class="col-4 text-right">
 
@@ -31,7 +31,7 @@
                                 <div class="card-body">
                                 <h5 class="card-text">{{ __($item[0]) }}</h5>
                                 <p class="card-text">{{ __($item[1]) }}</p>
-                                <a href="{{$item[3]}}" class="btn btn-primary">{{ __('settings.how_to_fix_this') }}</a>
+                                <a href="{{$item[3]}}" class="btn btn-primary">{{ __('settings_how_to_fix_this') }}</a>
                                 </div>
                             </div>
                         @endif
@@ -44,7 +44,7 @@
                         
                         <div class="progress-info">
                             <div class="progress-label warning">
-                            <span>{{ __('settings.setup_progress')}}</span>
+                            <span>{{ __('settings_setup_progress')}}</span>
                               </div>
                           <div class="progress-percentage">
                           <span>{{ $progress }}%</span>

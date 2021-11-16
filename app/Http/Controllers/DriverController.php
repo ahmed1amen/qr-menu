@@ -203,7 +203,7 @@ class DriverController extends Controller
         //Send email to the user/driver
         $driver->notify(new DriverCreated($generatedPassword, $driver));
 
-        return redirect()->back()->withStatus(__('notications.thanks_andcheckemail'));
+        return redirect()->back()->withStatus(__('notifications_thanks_andcheckemail'));
     }
 
     public function getToken(Request $request)

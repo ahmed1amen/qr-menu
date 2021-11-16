@@ -54,42 +54,42 @@ class SettingsController extends Controller
         $testResutls = [];
         //1. Make sure admin email is not admin@example.com
         if (auth()->user()->email !== 'admin@example.com') {
-            array_push($testResutls, ['settings.default_admin_email', 'OK', true]);
+            array_push($testResutls, ['settings_default_admin_email', 'OK', true]);
             $taskDone++;
 
             //Continue to verify smtp setup
             if (config('mail.mailers.smtp.username') != '802fc656dd8029') {
                 try {
                     auth()->user()->notify(new SystemTest(auth()->user()));
-                    array_push($testResutls, ['settings.smtp', 'OK', true]);
+                    array_push($testResutls, ['settings_smtp', 'OK', true]);
                     $taskDone++;
 
                     //Now in qr, we need paddle vendor id or stripe s
                     if (config('settings.subscription_processor') == 'Paddle') {
                         //Check paddle
                         if (config('settings.paddlevendorid') && strlen(config('settings.paddlevendorid') > 3)) {
-                            array_push($testResutls, ['settings.paddle', 'OK', true]);
+                            array_push($testResutls, ['settings_paddle', 'OK', true]);
                             $taskDone++;
                         } else {
-                            array_push($testResutls, ['settings.paddle', 'settings.paddle_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
+                            array_push($testResutls, ['settings_paddle', 'settings_paddle_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
                         }
                     } else {
                         //Check stripe
                         if (config('settings.stripe_key') && strlen(config('settings.stripe_key')) > 3 && config('settings.stripe_key') != 'pk_test_XXXXXXXXXXXXXX' && config('settings.stripe_secret') != 'sk_test_XXXXXXXXXXXXXXX') {
-                            array_push($testResutls, ['settings.stripe', 'OK', true]);
+                            array_push($testResutls, ['settings_stripe', 'OK', true]);
                             $taskDone++;
                         } else {
-                            array_push($testResutls, ['settings.stripe', 'settings.stripe_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
+                            array_push($testResutls, ['settings_stripe', 'settings_stripe_error', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/payments']);
                         }
                     }
                 } catch (\Exception $e) {
-                    array_push($testResutls, ['settings.smtp', 'settings.smtp_not_ok', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/obtain-smtp']);
+                    array_push($testResutls, ['settings_smtp', 'settings_smtp_not_ok', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/obtain-smtp']);
                 }
             } else {
-                array_push($testResutls, ['settings.smtp', 'settings.smtp_not_ok', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/obtain-smtp']);
+                array_push($testResutls, ['settings_smtp', 'settings_smtp_not_ok', false, 'https://mobidonia.gitbook.io/qr-menu-maker/define-basics/obtain-smtp']);
             }
         } else {
-            array_push($testResutls, ['settings.default_admin_email', 'settings.using_default_admin_solution', false, 'https://mobidonia.gitbook.io/qr-menu-maker/usage/getting-started#login-as-admin']);
+            array_push($testResutls, ['settings_default_admin_email', 'settings_using_default_admin_solution', false, 'https://mobidonia.gitbook.io/qr-menu-maker/usage/getting-started#login-as-admin']);
         }
 
         return view('settings.status', [
@@ -212,7 +212,7 @@ class SettingsController extends Controller
                     // Run the update process
                     $updater->source()->update($release);
 
-                    return redirect()->route('settings.index')->withStatus(__('Successfully updated to version v'.$versionAvailable));
+                    return redirect()->route('settings.index')->withStatus(__('Successfully updated to version v').$versionAvailable);
                     
                 } else {
                     return redirect()->route('settings.index')->withStatus(__('There is nothing to update!'));

@@ -10,9 +10,9 @@
         "prod": "npm run production",
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
         "clear":"rm -r storage/framework/views/* || true && rm storage/installed || true && rm storage/multilanguagemigrated || true && rm -r storage/logs/* || true",
-        "zipwa": "npm run clear && cp .env_wp .env && zip -r whatsapp_food.zip ./  -x \"ftiger.zip\"   -x \"qr_maker.zip\"  -x \"ngrok\" -x \"public/impactfront/*\"  -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \".env_ft\" -x \".env_qr\" -x \".env_wp\"",
-        "zipqr": "npm run clear &&cp .env_qr .env && zip -r qr_maker.zip ./  -x \"whatsapp_food.zip\"  -x \"ftiger.zip\"  -x \"ngrok\"  -x \"public/social/*\"  -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \".env_ft\" -x \".env_qr\"  -x \".env_wp\"",
-        "zipft": "npm run clear && cp .env_ft .env && zip -r ftiger.zip ./   -x \"whatsapp_food.zip\" -x \"qr_maker.zip\"  -x \"ngrok\" -x \"public/social/*\" -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \"public/js/appreact.js\"  -x \".env_ft\" -x \".env_qr\"  -x \".env_wp\"",
+        "zipwa": "npm run clear && cp .env_wp .env && zip -r whatsapp_food.zip ./  -x \"resources/lang/en/qrlanding.php\"  -x \"ftiger.zip\"   -x \"qr_maker.zip\"  -x \"ngrok\" -x \"public/impactfront/*\"  -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \".env_ft\" -x \".env_qr\" -x \".env_wp\"",
+        "zipqr": "npm run clear &&cp .env_qr .env && zip -r qr_maker.zip ./   -x \"resources/lang/en/whatsapp.php\" -x \"whatsapp_food.zip\"  -x \"ftiger.zip\"  -x \"ngrok\"  -x \"public/social/*\"  -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \".env_ft\" -x \".env_qr\"  -x \".env_wp\"",
+        "zipft": "npm run clear && cp .env_ft .env && zip -r ftiger.zip ./   -x \"resources/lang/en/qrlanding.php\" -x \"resources/lang/en/whatsapp.php\"  -x \"whatsapp_food.zip\" -x \"qr_maker.zip\"  -x \"ngrok\" -x \"public/social/*\" -x \"node_modules/*\"  -x \"*.git*\" -x \"*.DS_Store\"  -x \"public/js/appreact.js\"  -x \".env_ft\" -x \".env_qr\"  -x \".env_wp\"",
         "zipupdate": "cat .diff-files.txt | zip -@ update.zip"
     },
     "devDependencies": {

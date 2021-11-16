@@ -92,7 +92,7 @@ class Order extends Model
         foreach ($this->items()->get() as $key => $item) {
             $lineprice = $item->pivot->qty.' X '.$item->name." - ".money($item->pivot->qty * $item->pivot->variant_price, config('settings.cashier_currency'), true);
             if(strlen($item->pivot->variant_name)>3){
-                $lineprice .=$nl.$tabSpace.__('Variant: '.$item->pivot->variant_name);
+                $lineprice .=$nl.$tabSpace.__('Variant:')." ".$item->pivot->variant_name;
             }
            
             if(strlen($item->pivot->extras)>3){

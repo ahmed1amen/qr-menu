@@ -84,7 +84,7 @@ class AppServiceProvider extends ServiceProvider
                 'slug'=>'localizatino',
                 'icon'=>'ni ni-world-2',
                 'fields'=>[
-                    ['title'=>'Default language', '', 'key'=>'APP_LOCALE', 'value'=>'en', 'ftype'=>'select', 'data'=>config('languages')],
+                    ['title'=>'Default language', 'help'=>"If you make change, make sure you first have added the new language in Translations and you have done the translations.", 'key'=>'APP_LOCALE', 'value'=>'en', 'ftype'=>'select', 'data'=>config('languages')],
                     ['title'=>'List of available language on the landing page', 'help'=>'Define a list of Language shortcode and the name. If only one language is listed, the language picker will not show up', 'key'=>'FRONT_LANGUAGES', 'value'=>'EN,English,FR,French', 'onlyin'=>'qrsaas'],
                     ['title'=>'Time zone', 'help'=>'This value is important for correct vendors opening and closing times', 'key'=>'TIME_ZONE', 'value'=>'Europe/Berlin', 'ftype'=>'select', 'data'=>config('timezones')],
                     ['title'=>'Default currency', 'key'=>'CASHIER_CURRENCY', 'value'=>'eur', 'ftype'=>'select', 'data'=>$moneyList],
