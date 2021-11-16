@@ -33,20 +33,16 @@
     @endif
 
     <td class="table-web">
-        {{ $order->created_at->format(config('settings.datetime_display_format')) }}
+        {{ $order->created_at->locale(Config::get('app.locale'))->isoFormat('LLLL')  }}
     </td>
     <td class="table-web">
-        @if( $order->table)
-            {{  $order->table->restoarea?$order->table->restoarea->name." - ".$order->table->name:$order->table->name }}
-        @else
-            {{ __('Takeaway')}}
-        @endif
+        {{ $order->getExpeditionType() }}
     </td>
     <td class="table-web">
         {{ count($order->items) }}
     </td>
     <td class="table-web">
-        @money( $order->order_price, config('settings.cashier_currency'),config('settings.do_convertion'))
+        @money( $order->order_price_with_discount, config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
     <td>
         @include('orders.partials.laststatus')

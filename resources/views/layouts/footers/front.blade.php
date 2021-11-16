@@ -1,9 +1,9 @@
-<footer class="footer">
+<footer class="footer notranslate">
     <div class="container">
       <div class="row align-items-center justify-content-md-between">
         <div class="col-md-6">
           <div class="copyright">
-            &copy; 2020 <a href="" target="_blank">{{ config('global.site_name', 'mResto') }}</a>.
+            &copy; {{ date('Y') }} <a href="" target="_blank">{{ config('global.site_name', 'mResto') }}</a>.
           </div>
         </div>
         <div class="col-md-6">

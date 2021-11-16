@@ -6,12 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasTranslations;
 
-class Features extends Model
+class Features extends Posts
 {
-    use HasFactory,HasTranslations;
-    public $translatable = ['title','description'];
-
-    protected $fillable = ['post_type', 'title', 'description', 'image'];
-
-    protected $table = 'posts';
 }

@@ -48,7 +48,7 @@
     @endif
 
     <td class="table-web">
-        {{ $order->created_at->format(config('settings.datetime_display_format')) }}
+        {{ $order->created_at->locale(Config::get('app.locale'))->isoFormat('LLLL') }}
     </td>
     <td class="table-web">
         {{ $order->time_formated }}
@@ -80,7 +80,7 @@
         </td>
     @endif
     <td class="table-web">
-        @money( $order->order_price, config('settings.cashier_currency'),config('settings.do_convertion'))
+        @money( $order->order_price_with_discount, config('settings.cashier_currency'),config('settings.do_convertion'))
 
     </td>
     <td class="table-web">

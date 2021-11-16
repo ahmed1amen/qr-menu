@@ -1,4 +1,4 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 @section('thead')
     <th>{{ __('Rating') }}</th>
     <th>{{ __('Comment') }}</th>

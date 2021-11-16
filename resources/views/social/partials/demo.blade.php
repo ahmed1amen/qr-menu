@@ -10,10 +10,11 @@
         <img class="img-thumbnail img-fluid rounded shadow" data-toggle="tooltip" data-placement="top"
           title="{{ __('whatsapp.demo_image') }}" data-container="body"
           data-animation="true"
-          src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{  config('settings.app_url')."/".config('settings.url_route')."/".config('settings.demo_restaurant_slug') }}" />
+          src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{  $demoLink }}" />
         <!-- END DEMO QR-->
         <br /> <br />
-        <a type="button" target="_blank" class="btn btn-outline-success" href="{{ route('vendor',config('settings.demo_restaurant_slug')) }}">{{__('whatsapp.test_on_web')}}</a>
+        
+        <a type="button" target="_blank" class="btn btn-outline-success" href="{{ $demoLink }}">{{__('whatsapp.test_on_web')}}</a>
         
       </div>
     </div>

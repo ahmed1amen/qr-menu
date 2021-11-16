@@ -153,6 +153,7 @@ class CouponsController extends Controller
         $this->authChecker();
         $item = $this->provider::findOrFail($id);
         $item->name = $request->name;
+        $item->code = $request->code;
         $item->type = $request->type;
         $item->price = $request->type == 0 ? $request->price_fixed : $request->price_percentage;
         $item->active_from = $request->active_from;
@@ -175,61 +176,27 @@ class CouponsController extends Controller
         $this->authChecker();
         $item = $this->provider::findOrFail($id);
         $item->delete();
-
-        //TODO -- Delete customers from this table
         return redirect()->route($this->webroute_path.'index')->withStatus(__('crud.item_has_been_removed', ['item'=>__($this->title)]));
     }
 
     public function apply(Request $request)
     {
-        //'data' => Cart::getContent(),
         $coupon = Coupons::where(['code' => $request->code])->get()->first();
-
-        $dateActive = false;
-
-        if ((new Carbon($coupon->active_to))->gt(new Carbon($coupon->active_from)) && Carbon::now()->between(new Carbon($coupon->active_from), new Carbon($coupon->active_to))) {
-            $dateActive = true;
-        } elseif ((new Carbon($coupon->active_from))->eq(new Carbon($coupon->active_to)) && (new Carbon(Carbon::now()->toDateString()))->eq(new Carbon($coupon->active_from)) && (new Carbon(Carbon::now()->toDateString()))->eq(new Carbon($coupon->active_to))) {
-            $dateActive = true;
+        if($coupon){
+            $deduct=$coupon->calculateDeduct($request->cartValue);
+            if($deduct){
+                //$coupon->decrement('limit_to_num_uses');
+                //$coupon->increment('used_count');
+                return response()->json([
+                    'deduct' => $deduct,
+                    'status' => true,
+                    'msg' => __('Coupon code applied successfully.'),
+                ]);
+            }
         }
-
-        if ($coupon->type == 0 && $coupon->limit_to_num_uses > 0 && $dateActive) {
-            $total = Cart::getSubTotal() - $coupon->price;
-            $coupon->decrement('limit_to_num_uses');
-            $coupon->increment('used_count');
-
-            return response()->json([
-                'total' => $total,
-                'status' => true,
-                'msg' => __('Coupon code applied successfully.'),
-            ]);
-        } elseif ($coupon->type == 1 && $coupon->limit_to_num_uses > 0 && $dateActive) {
-            $myNumber = Cart::getSubTotal();
-
-            //I want to get 25% of 928.
-            $percentToGet = $coupon->price;
-
-            //Convert our percentage value into a decimal.
-            $percentInDecimal = $percentToGet / 100;
-
-            //Get the result.
-            $percent = $percentInDecimal * $myNumber;
-
-            $total = number_format((float) Cart::getSubTotal() - $percent, 2, '.', '');
-
-            $coupon->decrement('limit_to_num_uses');
-            $coupon->increment('used_count');
-
-            return response()->json([
-                'total' => $total,
-                'status' => true,
-                'msg' => __('Coupon code applied successfully.'),
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'msg' => __('The coupon promotion code has been expired or the limit is exceeded.'),
-            ]);
-        }
+        return response()->json([
+            'status' => false,
+            'msg' => __('The coupon promotion code has been expired or the limit is exceeded.'),
+        ]);
     }
 }

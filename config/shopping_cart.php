@@ -23,7 +23,7 @@ return [
      *
      * the configuration for persisting cart
      */
-    'storage' => null,
+    'storage' => env('IS_POS_CLOUD_MODE',false)?\App\Repositories\CartDBStorageRepository::class:null,
 
     /*
      * ---------------------------------------------------------------

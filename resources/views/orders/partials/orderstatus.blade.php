@@ -11,7 +11,7 @@
                         <span class="text-muted text-sm font-weight-bold">{{ __($statuses[$stakeholder->pivot->status_id]) }}</span>
                     </div>
                     <div class="text-right">
-                        <small class="text-muted"><i class="fas fa-clock mr-1"></i>{{ $stakeholder->pivot->created_at->format(config('settings.datetime_display_format')) }}</small>
+                        <small class="text-muted"><i class="fas fa-clock mr-1"></i>{{ $stakeholder->pivot->created_at->locale(Config::get('app.locale'))->isoFormat('LLLL') }}</small>
                     </div>
                 </div>
                 <h6 class="text-sm mt-1 mb-0">{{ __('Status from') }}: {{$stakeholder->name }}</h6>

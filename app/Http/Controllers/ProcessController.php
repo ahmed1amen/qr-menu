@@ -18,12 +18,18 @@ class ProcessController extends Controller
 
     private function getFields()
     {
-        return [
+        $elements=[
             ['ftype'=>'input', 'name'=>'Title', 'id'=>'title', 'placeholder'=>__('Enter title'), 'required'=>true],
             ['ftype'=>'input', 'name'=>'Description', 'id'=>'description', 'placeholder'=>__('Enter description'), 'required'=>true],
             ['ftype'=>'input', 'name'=>'Link Name', 'id'=>'link_name', 'placeholder'=>__('Enter link name'), 'required'=>false],
             ['ftype'=>'input', 'name'=>'Link ', 'id'=>'link', 'placeholder'=>__('Enter link URL'), 'required'=>false],
         ];
+        if(config('app.ispc')){
+            array_push($elements, ['ftype'=>'input', 'name'=>__('Subtitle'), 'id'=>'subtitle', 'required'=>true, 'placeholder'=>__('Enter subtitle')]);
+            array_push($elements, ['ftype'=>'image', 'name'=>__('Feature image'), 'id'=>'image']);
+        }
+
+        return $elements;
     }
 
     /**
@@ -98,6 +104,23 @@ class ProcessController extends Controller
             'link_name' => $request->link_name,
         ]);
 
+        if(config('app.ispc')){
+            $process->subtitle=$request->subtitle;
+            
+            if ($request->hasFile('image')) {
+                $process->image = $this->saveImageVersions(
+                    $this->imagePath,
+                    $request->image,
+                    [
+                        ['name'=>'large'],
+                    ]
+                );
+               
+            }
+            $process->update();
+        }
+
+
         $process->save();
 
         return redirect()->route('admin.landing.processes.index')->withStatus(__('Process was added'));
@@ -128,6 +151,11 @@ class ProcessController extends Controller
         $fields[1]['value'] = $process->description;
         $fields[2]['value'] = $process->link;
         $fields[3]['value'] = $process->link_name;
+
+        if(config('app.ispc')){
+            $fields[4]['value'] = $process->subtitle;
+            $fields[5]['value'] =  $process->image_link;
+        }
 
         //dd($option);
         return view('general.form', ['setup' => [
@@ -161,6 +189,21 @@ class ProcessController extends Controller
         $process->description = $request->description;
         $process->link = $request->link;
         $process->link_name = $request->link_name;
+
+        if(config('app.ispc')){
+            $process->subtitle=$request->subtitle;
+            
+            if ($request->hasFile('image')) {
+                $process->image = $this->saveImageVersions(
+                    $this->imagePath,
+                    $request->image,
+                    [
+                        ['name'=>'large'],
+                    ]
+                );
+               
+            }
+        }
 
         $process->update();
 

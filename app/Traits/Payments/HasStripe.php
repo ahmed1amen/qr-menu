@@ -4,6 +4,7 @@ namespace App\Traits\Payments;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Cashier\Exceptions\PaymentActionRequired;
 use Laravel\Cashier\Exceptions\PaymentFailure;
+use Laravel\Cashier\Exceptions\IncompletePayment;
 use Stripe\Charge;
 use Stripe\Customer;
 use Stripe\Stripe;
@@ -16,13 +17,19 @@ trait HasStripe
 
     public function payOrder(){
         try {
-            $total_price = (int) (($this->order->order_price + $this->order->delivery_price) * 100);
+            $total_price = (int) (($this->order->order_price_with_discount + $this->order->delivery_price) * 100);
             $chargeOptions = [];
             
             //Setup based on vendor
             if(config('settings.stripe_useVendor')){
-                config(['settings.stripe_secret' => $this->vendor->getConfig('stripe_key','')]);
-                config(['settings.stripe_key' => $this->vendor->getConfig('stripe_secret','')]);
+                
+                Stripe::setClientId($this->vendor->getConfig('stripe_key',''));
+                Stripe::setApiKey($this->vendor->getConfig('stripe_secret',''));
+                config(['settings.stripe_key' => $this->vendor->getConfig('stripe_key','')]);
+                config(['settings.stripe_secret' => $this->vendor->getConfig('stripe_secret','')]);
+                config(['cashier.key' => $this->vendor->getConfig('stripe_key')]);
+                config(['cashier.secret' => $this->vendor->getConfig('stripe_secret')]);
+                
             } else if (config('settings.enable_stripe_connect') && $this->vendor->user->stripe_account) {
                 $chargeOptions=$this->stripeConnect();
             }
@@ -45,14 +52,22 @@ trait HasStripe
             $this->order->payment_processor_fee = ($total_price * config('settings.stripe_fee')/10000) + config('settings.stripe_static_fee');
             $this->order->update();
         }catch (PaymentActionRequired $e) {
-            //On PaymentActionRequired - send the checkout link
+            //On PaymentActionRequired  3D secure - send the checkout link
             $this->paymentRedirect= route('cashier.payment',[$e->payment->id, 'redirect' => route('handle.order.payment.stripe',['order'=> $this->order->id])]);
 
             //Set payment link in order
             $this->order->payment_link=$this->paymentRedirect;
             $this->order->update();
 
-        } catch (PaymentFailure $e) {
+        }catch (IncompletePayment $e) {
+            //On IncompletePayment - SCA - send the checkout link
+            $this->paymentRedirect= route('cashier.payment',[$e->payment->id, 'redirect' => route('handle.order.payment.stripe',['order'=> $this->order->id])]);
+
+            //Set payment link in order
+            $this->order->payment_link=$this->paymentRedirect;
+            $this->order->update();
+
+        }catch (PaymentFailure $e) {
             //On Fail delete order and inform user
             $this->invalidateOrder();
             return Validator::make(['stripe_payment_failure'=>null], ['stripe_payment_failure'=>'required']);

@@ -41,16 +41,6 @@ class BannersController extends Controller
 
     protected $imagePath = 'uploads/banners/';
 
-    /**
-     * Auth checker functin for the crud.
-     */
-    private function adminOnly()
-    {
-        if (! auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action.');
-        }
-    }
-
     private function getFields()
     {
         return [

@@ -89,13 +89,13 @@
          </li>
          <?php endif; ?>
         <?php if(config('app.isqrsaas')): ?>
-            <?php if(config('settings.is_whatsapp_ordering_mode')): ?>
-            <li class="nav-item">
-                <a class="nav-link" href="<?php echo e(route('admin.landing')); ?>">
-                    <i class="ni ni-html5 text-green"></i> <?php echo e(__('Landing Page')); ?>
+            <?php if(config('settings.showlandingmanagment',false)||config('settings.is_whatsapp_ordering_mode')||config('settings.is_pos_cloud_mode')): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?php echo e(route('admin.landing')); ?>">
+                        <i class="ni ni-html5 text-green"></i> <?php echo e(__('Landing Page')); ?>
 
-                </a>
-            </li>
+                    </a>
+                </li>
             <?php endif; ?>
         <li class="nav-item">
             <?php
@@ -104,7 +104,7 @@
                     $theLocaleToOpen=strtolower(session('applocale_change'));
                 }
             ?>
-            <a class="nav-link" target="_blank" href="<?php echo e(url('/admin/languages')."/".$theLocaleToOpen."/translations".(config('app.isqrsaas')?"?group=qrlanding":"")); ?>">
+            <a class="nav-link" target="_blank" href="<?php echo e(url('/admin/languages')."/".$theLocaleToOpen."/translations"); ?>">
                 <i class="ni ni-world text-orange"></i><?php echo e(__('Translations')); ?>
 
             </a>
@@ -117,6 +117,16 @@
             </a>
         </li>
         <?php endif; ?>
+
+        <?php $__currentLoopData = auth()->user()->getExtraMenus(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $menu): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <li class="nav-item">
+                    <a class="nav-link" href="<?php echo e(route($menu['route'])); ?>">
+                        <i class="<?php echo e($menu['icon']); ?>"></i> <?php echo e(__($menu['name'])); ?>
+
+                    </a>
+            </li>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
         <li class="nav-item">
             <a class="nav-link" href="<?php echo e(route('settings.index')); ?>">
                 <i class="ni ni-settings text-black"></i> <?php echo e(__('Site Settings ')); ?>
@@ -140,5 +150,7 @@
 
             </a>
         </li>
+
+        
 </ul>
 <?php /**PATH /home/ahmed/Downloads/Projects/qr-menu/resources/views/layouts/navbars/menus/admin.blade.php ENDPATH**/ ?>

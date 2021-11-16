@@ -1,10 +1,11 @@
 <div class="row">
+    @if(isset($coupon))
+        <div class="col-md-3">
+            @include('partials.input',['class'=>"col-12", 'ftype'=>'input','name'=>"Code",'id'=>"code",'placeholder'=>"",'required'=>true, 'value'=>$coupon->code])
+        </div>
+    @endif
     <div class="col-md-3">
-        @if(isset($coupon))
-            @include('partials.input',['class'=>"col-12", 'ftype'=>'input','name'=>"Name",'id'=>"name",'placeholder'=>"Enter code name",'required'=>true, 'value'=>$coupon->name])
-        @else
-            @include('partials.input',['class'=>"col-12", 'ftype'=>'input','name'=>"Name",'id'=>"name",'placeholder'=>"Enter code name",'required'=>true])
-        @endif
+        @include('partials.input',['class'=>"col-12", 'ftype'=>'input','name'=>"Name",'id'=>"name",'placeholder'=>"Enter code name",'required'=>true, 'value'=>isset($coupon)&&$coupon->name?$coupon->name:""])
     </div>
     <div class="col-md-3">
         @if(isset($coupon))

@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Repositories\Orders;
+
+use App\Coupons;
 use App\Order;
 use App\Restorant as Vendor;
 use App\Items;
@@ -142,12 +144,14 @@ class BaseOrderRepository extends Controller
                 $this->order->client_id=auth()->user()->id;
             }
 
-            //TODO Set initials like VAT, prices etc to 0
             $this->order->order_price=0;
             $this->order->vatvalue=0;
 
             //Save order
             $this->order->save();
+
+            $this->order->md=md5($this->order->id);
+            $this->order->update();
 
             //Save order custom fields
             $this->order->setMultipleConfig($this->request->customFields);
@@ -160,14 +164,7 @@ class BaseOrderRepository extends Controller
     }
     
     private function setItems(){
-        /**
-          "items":[{
-                "id":1,
-                "qty":2,
-                "extrasSelected":[{"id":1},{"id":2}],
-                "variant":1
-              }],
-         */
+
         foreach ($this->request->items as $key => $item) {
 
             
@@ -215,10 +212,33 @@ class BaseOrderRepository extends Controller
         $total_order_vat=0;
         foreach ($this->order->items()->get() as $key => $item) {
             $order_price+=$item->pivot->qty*$item->pivot->variant_price;
-            $total_order_vat+=$item->pivot->vatvalue;//$item->pivot->qty*($item->pivot->vatvalue/100);
+            $total_order_vat+=$item->pivot->vatvalue;
         }
         $this->order->order_price=$order_price;
         $this->order->vatvalue=$total_order_vat;
+
+        //Set coupons
+        if($this->request->has('coupon_code')&&strlen($this->request->coupon_code)>0){
+            $coupon = Coupons::where(['code' => $this->request->coupon_code])->where('restaurant_id',$this->vendor->id)->get()->first();
+            if($coupon){
+                $deduct=$coupon->calculateDeduct($this->order->order_price);
+                if($deduct){
+                    $coupon->decrement('limit_to_num_uses');
+                    $coupon->increment('used_count');
+                    $this->order->coupon=$this->request->coupon_code;
+                    if($deduct>$this->order->order_price){
+                        $this->order->discount=$order_price;
+
+                        //In this case, order should be considered as paid one
+                        //$this->order->payment_status = 'paid';
+                    }else{
+                        $this->order->discount=$deduct;
+                    }
+                    
+                }
+            }
+        }
+        
 
         //Update the order with the item
         $this->order->update();
@@ -234,7 +254,7 @@ class BaseOrderRepository extends Controller
     private function calculateFees(){
         $this->order->static_fee=$this->vendor->static_fee;
         $this->order->fee=$this->vendor->fee;
-        $this->order->fee_value=($this->vendor->fee/100)*($this->order->order_price-$this->vendor->static_fee);
+        $this->order->fee_value=($this->vendor->fee/100)*($this->order->order_price_with_discount-$this->vendor->static_fee);
         $this->order->update();
     }
 

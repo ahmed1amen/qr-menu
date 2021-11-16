@@ -13,6 +13,7 @@ use Image;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\ConfChanger;
 use Akaunting\Module\Facade as Module;
+use App\Models\Allergens;
 
 class ItemsController extends Controller
 {
@@ -33,18 +34,8 @@ class ItemsController extends Controller
         if (auth()->user()->hasRole('owner')) {
 
             
-            $canAdd = true;
-            if (config('app.isqrsaas')) {
-                //In QRsaas with plans, we need to check if they can add new items.
-                $currentPlan = Plans::withTrashed()->find(auth()->user()->mplanid());
-                if ($currentPlan == null) {
-                    return redirect()->route('plans.current')->withStatus(__('Please subscribe to a plan first'));
-                }
-                $items = Items::whereIn('category_id', auth()->user()->restorant->categories->pluck('id')->toArray());
-                if ($currentPlan->limit_items != 0) {
-                    $canAdd = $currentPlan->limit_items > $items->count();
-                }
-            }
+            $canAdd = auth()->user()->restorant->getPlanAttribute()['canAddNewItems'];
+            
 
             //Change language
             ConfChanger::switchLanguage(auth()->user()->restorant);
@@ -146,6 +137,13 @@ class ItemsController extends Controller
         $item->description = strip_tags($request->item_description);
         $item->price = strip_tags($request->item_price);
         $item->category_id = strip_tags($request->category_id);
+        $defVat=0;
+        $resto=$this->getRestaurant();
+        if($resto){
+            $defVat=$resto->getConfig('default_tax_value',0);
+        }
+        $item->vat=$defVat;
+        
         if ($request->hasFile('item_image')) {
             $item->image = $this->saveImageVersions(
                 $this->imagePath,
@@ -184,11 +182,27 @@ class ItemsController extends Controller
     {
         //if item belongs to owner restorant menu return view
         if (auth()->user()->hasRole('owner') && $item->category->restorant->id == auth()->user()->restorant->id || auth()->user()->hasRole('admin')) {
+            
+            $extraViews=[];
+            foreach (Module::all() as $key => $module) {
+                if(is_array($module->get('menuview'))){
+                    foreach ($module->get('menuview') as $key => $menu) {
+                       array_push($extraViews,$menu);
+                    }
+                }
+            }
+
+            
+            
+            
             return view('items.edit',
             [
+                'extraViews'=>$extraViews,
+                'allergens'=>Allergens::where('post_type','allergen')->get(),
                 'item' => $item,
-                'setup'=>['items'=>$item->variants()->paginate(100)],
+                'setup'=>['items'=>$item->uservariants()->paginate(1000)],
                 'restorant' => $item->category->restorant,
+                'categories'=> $item->category->restorant->categories->pluck('name','id'),
                 'restorant_id' => $item->category->restorant->id, ]);
         } else {
             return redirect()->route('items.index')->withStatus(__('No Access'));
@@ -204,15 +218,55 @@ class ItemsController extends Controller
      */
     public function update(Request $request, Items $item)
     {
+        $makeVariantsRecreate=false;
         $item->name = strip_tags($request->item_name);
         $item->description = strip_tags($request->item_description);
+        $item->category_id = $request->category_id;
+        if($item->price!=strip_tags($request->item_price)){
+            $makeVariantsRecreate=true;
+        }
         $item->price = strip_tags($request->item_price);
         if (isset($request->vat)) {
             $item->vat = $request->vat;
         }
 
+
         $item->available = $request->exists('itemAvailable');
         $item->has_variants = $request->exists('has_variants');
+        if(!$item->has_variants){
+            $item->enable_system_variants=0;
+
+            //Delete all system variants
+            $item->systemvariants()->delete();
+        }else{
+
+            //We have variants, but do we have system variables
+            $doWoHave_enable_system_variants=$request->exists('enable_system_variants')?1:0;
+
+            //In case value changes from no to yes, we need to recreate
+            if($item->enable_system_variants==0&&$doWoHave_enable_system_variants==1){
+                $makeVariantsRecreate=true;
+            }
+
+            //Set the flag for the system
+            $item->enable_system_variants=$doWoHave_enable_system_variants; 
+
+            //When we have System Variables
+            if($item->enable_system_variants==1){
+                //And we do need to make recreation
+                if($makeVariantsRecreate){
+                    //Delete all of them - since this can be a price change
+                    $item->systemvariants()->forceDelete();
+
+                    //And recreate once  again - with new item price
+                    $item->makeAllMissingVariants($item->price);
+                }
+                
+            }else{
+                //Delete all system variants - we don't need system variables
+                $item->systemvariants()->forceDelete();
+            }
+        }
 
         if ($request->hasFile('item_image')) {
             if ($request->hasFile('item_image')) {
@@ -220,7 +274,7 @@ class ItemsController extends Controller
                     $this->imagePath,
                     $request->item_image,
                     [
-                        ['name'=>'large', 'w'=>590, 'h'=>400],
+                        ['name'=>'large'],
                         //['name'=>'thumbnail','w'=>300,'h'=>300],
                         ['name'=>'medium', 'w'=>295, 'h'=>200],
                         ['name'=>'thumbnail', 'w'=>200, 'h'=>200],
@@ -254,8 +308,7 @@ class ItemsController extends Controller
 
         Excel::import(new ItemsImport($restorant), request()->file('items_excel'));
 
-        //return redirect()->route('admin.restaurants.index')->withStatus(__('Items successfully imported'));
-        return back()->withStatus(__('Items successfully imported'));
+        redirect()->route('admin.restaurants.index')->withStatus(__('Items successfully imported'));
     }
 
     public function change(Items $item, Request $request)

@@ -21,11 +21,16 @@ use Maatwebsite\Excel\Facades\Excel;
 use willvincent\Rateable\Rating;
 use App\Services\ConfChanger;
 use Akaunting\Module\Facade as Module;
+use App\Coupons;
 use App\Events\OrderAcceptedByAdmin;
 use App\Events\OrderAcceptedByVendor;
+use App\Models\Orderitems;
+use App\Models\SimpleDelivery;
 
 class OrderController extends Controller
 {
+
+   
     public function migrateStatuses()
     {
         if (Status::count() < 13) {
@@ -59,16 +64,20 @@ class OrderController extends Controller
         //Get client's orders
         if (auth()->user()->hasRole('client')) {
             $orders = $orders->where(['client_id'=>auth()->user()->id]);
-        ////Get driver's orders
         } elseif (auth()->user()->hasRole('driver')) {
             $orders = $orders->where(['driver_id'=>auth()->user()->id]);
-        //Get owner's restorant orders
         } elseif (auth()->user()->hasRole('owner')) {
              
             //Change currency
             ConfChanger::switchCurrency(auth()->user()->restorant);
 
             $orders = $orders->where(['restorant_id'=>auth()->user()->restorant->id]);
+        }elseif (auth()->user()->hasRole('staff')) {
+             
+            //Change currency
+            ConfChanger::switchCurrency(auth()->user()->restaurant);
+
+            $orders = $orders->where(['restorant_id'=>auth()->user()->restaurant_id]);
         }
 
         //FILTER BT RESTORANT
@@ -94,13 +103,11 @@ class OrderController extends Controller
 
         //BY DATE FROM
         if (isset($_GET['fromDate']) && strlen($_GET['fromDate']) > 3) {
-            //$start = Carbon::parse($_GET['fromDate']);
             $orders = $orders->whereDate('created_at', '>=', $_GET['fromDate']);
         }
 
         //BY DATE TO
         if (isset($_GET['toDate']) && strlen($_GET['toDate']) > 3) {
-            //$end = Carbon::parse($_GET['toDate']);
             $orders = $orders->whereDate('created_at', '<=', $_GET['toDate']);
         }
 
@@ -124,9 +131,9 @@ class OrderController extends Controller
                     'address_id'=>$order->address_id,
                     'driver_name'=>$order->driver ? $order->driver->name : '',
                     'driver_id'=>$order->driver_id,
-                    'order_value'=>$order->order_price,
+                    'order_value'=>$order->order_price_with_discount,
                     'order_delivery'=>$order->delivery_price,
-                    'order_total'=>$order->delivery_price + $order->order_price,
+                    'order_total'=>$order->delivery_price + $order->order_price_with_discount,
                     'payment_method'=>$order->payment_method,
                     'srtipe_payment_id'=>$order->srtipe_payment_id,
                     'order_fee'=>$order->fee_value,
@@ -164,25 +171,6 @@ class OrderController extends Controller
     
 
     private function toMobileLike(Request $request){
-        /*{
-            "restaurant_id":1,
-            "delivery_method":"delivery", //delivery, pickup, dinein
-            "payment_method":"cod" ,
-            "address_id":1,
-            "platform":"WebService",
-            "items":[{
-                "id":1,
-                "qty":2,
-                "extrasSelected":[{"id":1},{"id":2}],
-                "variant":1
-              }],
-            "order_price":72,
-            "comment":"",
-            "timeslot":"1320_1350",
-            "stripe_token":null
-        }*/
-
-
         //Find vendor id
         $vendor_id = null;
         foreach (Cart::getContent() as $key => $item) {
@@ -217,6 +205,9 @@ class OrderController extends Controller
         if($request->has('custom')){
             $customFields=$request->custom;
         }
+
+        
+       
 
         //DELIVERY METHOD
         //Default - pickup - since available everywhere
@@ -257,11 +248,22 @@ class OrderController extends Controller
              $phone=$request->phone;
          }
 
+        //Delivery area
+        $deliveryAreaId=$request->has('delivery_area')?$request->delivery_area:null;
+        if($deliveryAreaId){
+            //Set this in custom field
+            $deliveryAreaName="";
+            $deliveryAreaElement=SimpleDelivery::find($request->delivery_area);
+            if($deliveryAreaElement){
+                $deliveryAreaName=$deliveryAreaElement->name;
+            }
+            $customFields['delivery_area_name']=$deliveryAreaName;
+        }
 
         $requestData=[
             'vendor_id'   => $vendor_id,
             'delivery_method'=> $delivery_method,
-            'payment_method'=> $request->paymentType,
+            'payment_method'=> $request->paymentType?$request->paymentType:"cod",
             'address_id'=>$request->addressID,
             "timeslot"=>$request->timeslot,
             "items"=>$items,
@@ -269,7 +271,9 @@ class OrderController extends Controller
             "stripe_token"=>$stripe_token,
             "dinein_table_id"=>$table_id,
             "phone"=>$phone,
-            "customFields"=>$customFields
+            "customFields"=>$customFields,
+            "deliveryAreaId"=> $deliveryAreaId,
+            "coupon_code"=> $request->has('coupon_code')&&strlen($request->coupon_code)>3?$request->coupon_code:null
         ];
 
         
@@ -305,6 +309,9 @@ class OrderController extends Controller
 
             if($vendorHasOwnPayment==null){
                 $hasPayment=false;
+            }else{
+                //Since v3, don't auto select payment model, show all the  options to  user
+                $vendorHasOwnPayment="all";
             }
         }
 
@@ -340,7 +347,6 @@ class OrderController extends Controller
                     ]
             );
         } else {
-            //return null
             return response()->json(['status'=>'not_tracing']);
         }
     }
@@ -370,6 +376,7 @@ class OrderController extends Controller
 
         if (auth()->user()->hasRole('client') && auth()->user()->id == $order->client_id ||
             auth()->user()->hasRole('owner') && auth()->user()->id == $order->restorant->user->id ||
+            auth()->user()->hasRole('staff') && auth()->user()->restaurant_id == $order->restorant->id ||
                 auth()->user()->hasRole('driver') && auth()->user()->id == $order->driver_id || auth()->user()->hasRole('admin')
             ) {
             return view('orders.show', [
@@ -397,15 +404,83 @@ class OrderController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the order item count
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request,Order $order)
     {
-        //
+        if (auth()->user()->hasRole('owner') && auth()->user()->id == $order->restorant->user->id ||
+            auth()->user()->hasRole('staff') && auth()->user()->restaurant_id == $order->restorant->id || 
+            auth()->user()->hasRole('admin')
+            ) {
+
+               
+
+                //Don't allow all 0 qty
+                $zeroQty=0;
+                foreach ($order->items()->get() as $key => $item) {
+                    if($item->pivot->id==$request->pivot_id){
+                        
+                        if($request->item_qty.""=="0"){
+                            $zeroQty++; 
+                        }
+                    }else{
+                        if($item->pivot->qty==0){
+                            $zeroQty++;
+                        }
+                    }
+                }
+                if($zeroQty==$order->items()->count()){
+                    return redirect()->route('orders.show',$order->id)->withStatus(__('Can not set all qty to 0. You can reject order instead'));
+                }
+                
+                //Directly find the pivot
+                foreach ($order->items()->get() as $key => $item) {
+                    if($item->pivot->id==$request->pivot_id){
+                        $oi=Orderitems::findOrFail($item->pivot->id);
+                        $oi->qty=$request->item_qty;
+                        $oi->update();
+                        
+                        //$order->items()->updateExistingPivot($item, array('qty' => $request->item_qty), false);
+                        $totalRecaluclatedVAT = $request->item_qty * ($item->vat > 0?$item->pivot->variant_price * ($item->vat / 100):0);
+                        
+                        $oi->vatvalue=$request->$totalRecaluclatedVAT;
+                        $oi->update();
+                        //$order->items()->updateExistingPivot($item, array('vatvalue' => $totalRecaluclatedVAT), false);
+                    }
+                }
+                
+                 //After we have updated the list of items, we need to update the order price
+                $order_price=0;
+                $total_order_vat=0;
+                foreach ($order->items()->get() as $key => $item) {
+                    $order_price+=$item->pivot->qty*$item->pivot->variant_price;
+                    $total_order_vat+=$item->pivot->vatvalue;
+                }
+                $order->order_price=$order_price;
+                $order->vatvalue=$total_order_vat;
+                $order->update();
+
+                //If this order have discount, recaluclate deduct, it can be percentage based
+                if(strlen($order->coupon)>0){
+                    $coupon = Coupons::where(['code' => $order->coupon])->get()->first();
+                    if($coupon){
+                        $deduct=$coupon->calculateDeduct($order->order_price);
+                        if($deduct){
+                            $order->discount=$deduct;
+                        }
+                    }
+                }
+                $order->update();
+                
+                return redirect()->route('orders.show',$order->id)->withStatus(__('Order updated.'));
+                //You can update the order
+            }else{
+                return redirect()->route('orders.show',$order->id)->withStatus(__('No Access.'));
+            }
     }
 
     /**
@@ -422,9 +497,8 @@ class OrderController extends Controller
     public function liveapi()
     {
 
-        //TODO - Method not allowed for client or driver
         if (auth()->user()->hasRole('client')) {
-            dd('Not allowed as client');
+            abort(404,'Not allowed as client');
         }
 
         //Today only
@@ -477,12 +551,6 @@ class OrderController extends Controller
                 'price'=>money($order['order_price'], config('settings.cashier_currency'), config('settings.do_convertion')).'',
             ]);
         }
-
-        //dd($items);
-
-        /**
-
-         */
 
         //----- ADMIN ------
         if (auth()->user()->hasRole('admin')) {
@@ -581,10 +649,8 @@ class OrderController extends Controller
         //4. The top driver gets the order
         if (count($driversWithGeoIDS) == 0) {
             //No driver found -- this will appear in  the admin list also in the list of free order so driver can get an order
-            //dd('no driver found');
         } else {
             //Driver found
-            ///dd('driver found: '.$driversWithGeoIDS[0]);
             $order->driver_id = $driversWithGeoIDS[0];
             $order->update();
             $order->status()->attach([4 => ['comment'=>'System', 'user_id' => $driversWithGeoIDS[0]]]);
@@ -639,12 +705,12 @@ class OrderController extends Controller
             'accepted_by_admin'=>'admin',
             'assigned_to_driver'=>'admin',
             'rejected_by_admin'=>'admin',
-            'accepted_by_restaurant'=>'owner',
-            'prepared'=>'owner',
-            'rejected_by_restaurant'=>'owner',
-            'picked_up'=>['driver', 'owner'],
-            'delivered'=>['driver', 'owner'],
-            'closed'=>'owner',
+            'accepted_by_restaurant'=>['owner', 'staff'],
+            'prepared'=>['owner', 'staff'],
+            'rejected_by_restaurant'=>['owner', 'staff'],
+            'picked_up'=>['driver', 'owner', 'staff'],
+            'delivered'=>['driver', 'owner', 'staff'],
+            'closed'=>['owner', 'staff'],
             'accepted_by_driver'=>['driver'],
             'rejected_by_driver'=>['driver']
         ];
@@ -657,6 +723,13 @@ class OrderController extends Controller
         if (auth()->user()->hasRole('owner')) {
             //This user is owner, but we must check if this is order from his restaurant
             if (auth()->user()->id != $order->restorant->user_id) {
+                abort(403, 'Unauthorized action. You are not owner of this order restaurant');
+            }
+        }
+
+        if (auth()->user()->hasRole('sstaff')) {
+            //This user is owner, but we must check if this is order from his restaurant
+            if (auth()->user()->restaurant_id != $order->restorant->id) {
                 abort(403, 'Unauthorized action. You are not owner of this order restaurant');
             }
         }
@@ -675,7 +748,6 @@ class OrderController extends Controller
          * Prepared  - 5
          * Rejected - 9.
          */
-        // dd($status_id_to_attach."");
 
         if (config('app.isft')) {
             if ($status_id_to_attach.'' == '3' || $status_id_to_attach.'' == '5' || $status_id_to_attach.'' == '9') {
@@ -713,7 +785,6 @@ class OrderController extends Controller
             }
         }
 
-        //$order->status()->attach([$status->id => ['comment'=>"",'user_id' => auth()->user()->id]]);
         $order->status()->attach([$status_id_to_attach => ['comment'=>'', 'user_id' => auth()->user()->id]]);
 
 
@@ -722,6 +793,11 @@ class OrderController extends Controller
             OrderAcceptedByVendor::dispatch($order);
         }
         if($alias=="accepted_by_admin"){
+            //IN FT send email
+            if (config('app.isft')) {
+                $order->restorant->user->notify((new OrderNotification($order))->locale(strtolower(config('settings.app_locale'))));
+            }
+            
             OrderAcceptedByAdmin::dispatch($order);
         }
 
@@ -854,6 +930,19 @@ class OrderController extends Controller
         Cart::clear();
 
         return Redirect::to($url);
+    }
+
+    public function cancel(Request $request)
+    {   
+        $order = Order::findOrFail($request->order);
+        return view('orders.cancel', ['order' => $order]);
+    }
+    
+    public function  silentWhatsAppRedirect(Request $request){
+        $order = Order::findOrFail($request->order);
+        $message=$order->getSocialMessageAttribute(true);
+        $url = 'https://api.whatsapp.com/send?phone='.$order->restorant->whatsapp_phone.'&text='.$message;
+        return view('orders.success', ['order' => $order,'showWhatsApp'=>false,'whatsappurl'=>$url]);
     }
 
     public function success(Request $request)

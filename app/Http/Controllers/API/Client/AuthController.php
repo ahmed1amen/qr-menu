@@ -52,9 +52,19 @@ class AuthController extends Controller
                 'email' => ['required', 'string', 'email', 'unique:users', 'max:255'],
                 'phone' => ['required', 'string', 'regex:/^([0-9\s\-\+\(\)]*)$/'],
                 'password' => ['required', 'string', 'min:8'],
+                'app_secret'=>['required', 'string'],
             ]);
+            
+            
 
             if (!$validator->fails()) {
+                
+                if(config('settings.app_secret')==null||config('settings.app_secret').""!=$request->app_secret){
+                     return response()->json([
+                        'status' => false,
+                        'errMsg' => ['app_secret'=>__("App secret is incorrectly set")],
+                    ]);
+                }
                 $client = new User;
 
                 $client->name = $request->name;

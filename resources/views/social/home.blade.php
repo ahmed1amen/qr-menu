@@ -21,6 +21,12 @@ Coded by www.creative-tim.com
     <link rel="icon" type="image/png" href="{{ asset('social') }}/img/favicon.png">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('global.site_name','WhatsMenu') }}</title>
+    <meta property="og:image" content="{{ config('global.site_logo_dark') }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="651">
+    <meta property="og:image:height" content="123">
+    <meta name="og:title" property="og:title" content="{{ config('global.site_name','WhatsMenu') }}">
+    <meta name="description" content="{{ __('whatsapp.hero_description') }}">
   
     <!-- Global site tag (gtag.js) - Google Analytics -->
     @if (config('settings.google_analytics'))
@@ -36,6 +42,7 @@ Coded by www.creative-tim.com
 
     @yield('head')
     @laravelPWA
+    @include('layouts.rtl')
 
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -75,6 +82,11 @@ Coded by www.creative-tim.com
 
     <!-- EXPLAIN -->
     @include('social.partials.explain')
+
+    <!-- Featured clients -->
+    @if(in_array("feautureclients", config('global.modules',[])))
+     @include('feautureclients::whatsapp')
+    @endif
 
     <!-- PRICING -->
     @include('social.partials.pricing')
@@ -120,7 +132,7 @@ Coded by www.creative-tim.com
   <script>
     window.onload = function () {
 
-    $('#termsCheckBox').click(function () {
+    $('#termsCheckBox').on('click',function () {
         $('#submitRegister').prop("disabled", !$("#termsCheckBox").prop("checked")); 
     })
     var ifUser = {!! json_encode( auth()->user() && auth()->user()->hasRole('admin') ? true : false) !!};
@@ -132,19 +144,18 @@ Coded by www.creative-tim.com
         changeContentEditable(true);
 
         showEditBtns();
-        //$(".ckedit_edit").show();
+        
 
     }else{
         changeContentEditable(false);
 
-        //$(".ckedit_edit").hide();
+        
     }
 
     CKEDITOR.on('instanceReady', function(event) {
         var editor = event.editor;
 
         editor.on('blur', function(e) {
-            //console.log(editor.getSnapshot());
             var html=editor.getSnapshot()
             var dom=document.createElement("DIV");
             dom.innerHTML=html;
@@ -170,7 +181,7 @@ Coded by www.creative-tim.com
         element;
 
         while ( ( element = elements.getItem( i++ ) ) ) {
-            //CKEDITOR.inline(element);
+
             CKEDITOR.inline(element, {
                 removePlugins: 'link, image',
                 removeButtons: 'Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat,Scayt,SpecialChar,About,Styles,Cut,Copy,Undo,Redo,Outdent,Indent,Table,HorizontalRule,NumberedList,BulletedList,Blockquote,Format'
@@ -178,7 +189,7 @@ Coded by www.creative-tim.com
         }
     }
 
-    $(".ckedit_btn").click(function() {
+    $(".ckedit_btn").on('click',function() {
         var next = $(this).next().attr('key');
 
         var editor = CKEDITOR.instances[next];
@@ -248,9 +259,7 @@ Coded by www.creative-tim.com
 
                         notify(msg, "success");
                     }
-                }, error: function (response) {
-                //alert(response.responseJSON.errMsg);
-            }
+                }
         })
 
         }else{

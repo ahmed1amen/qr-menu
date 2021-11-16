@@ -53,7 +53,7 @@ class RestorantsTableSeeder extends Seeder
         }*/
 
         //Restorant owner
-        DB::table('users')->insert([
+        $demoOwnerId=DB::table('users')->insertGetId([
             'name' => 'Demo Owner',
             'email' =>  'owner@example.com',
             'password' => Hash::make('secret'),
@@ -67,11 +67,15 @@ class RestorantsTableSeeder extends Seeder
 
         //Assign owner role
         DB::table('model_has_roles')->insert([
-            'role_id' => 2,
+            'role_id' =>2,
             'model_type' =>  \App\User::class,
-            'model_id'=> 2,
+            'model_id'=> $demoOwnerId,
         ]);
 
+       
+
+
+        
         //Bronx, Manhattn, Queens, Brooklyn
 
         //Brooklyn
@@ -135,7 +139,7 @@ class RestorantsTableSeeder extends Seeder
         $id = 1;
         $catId = 1;
         foreach ($restorants as $key => $restorant) {
-            DB::table('restorants')->insert([
+            $lastRestaurantId=DB::table('companies')->insertGetId([
                 'name'=>$restorant['name'],
                 'logo'=>$restorant['image'],
                 'city_id'=>$restorant['city_id'],
@@ -155,25 +159,187 @@ class RestorantsTableSeeder extends Seeder
                 'mollie_payment_key'=>"test_W7vgVS4bUTVarzBm39wjUk7SRV3Aek"
             ]);
 
-            DB::table('hours')->insert([
-                'restorant_id' => $id,
-                '0_from' => '05:00',
-                '0_to' => '23:00',
-                '1_from' => '05:00',
-                '1_to' => '23:00',
-                '2_from' => '05:00',
-                '2_to' => '23:00',
-                '3_from' => '05:00',
-                '3_to' => '23:00',
-                '4_from' => '05:00',
-                '4_to' => '23:00',
-                '5_from' => '05:00',
-                '5_to' => '23:00',
-                '6_from' => '05:00',
-                '6_to' => '23:00',
+            //Insert delivery area
+            $demoDeliveryArea1=DB::table('simple_delivery_areas')->insertGetId([
+                'name' => 'Nearby',
+                'cost' =>  10,
+                'restaurant_id'=>$lastRestaurantId
             ]);
 
-            $areas = [['name'=>'Inside', 'count'=>10], ['name'=>'Terrasse', 'count'=>5]];
+            $demoDeliveryArea1=DB::table('simple_delivery_areas')->insertGetId([
+                'name' => 'Faraway',
+                'cost' =>  15,
+                'restaurant_id'=>$lastRestaurantId
+            ]);
+
+             //Staff 1 and 2
+            $demoStaffId=DB::table('users')->insertGetId([
+                'name' => 'Demo Staff 1',
+                'email' =>  ($lastRestaurantId==1?'staff':'staff1_'.$lastRestaurantId).'@example.com',
+                'password' => Hash::make('secret'),
+                'api_token' => Str::random(80),
+                'email_verified_at' => now(),
+                'phone' =>  '',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'restaurant_id'=>$lastRestaurantId
+            ]);
+
+            $demoStaffId2=DB::table('users')->insertGetId([
+                'name' => 'Demo Staff 2',
+                'email' =>  'staff2_'.$lastRestaurantId.'@example.com',
+                'password' => Hash::make('secret'),
+                'api_token' => Str::random(80),
+                'email_verified_at' => now(),
+                'phone' =>  '',
+                'created_at' => now(),
+                'updated_at' => now(),
+                'restaurant_id'=>$lastRestaurantId
+            ]);
+
+            //Assign staff role
+            DB::table('model_has_roles')->insert([
+                'role_id' => 5,
+                'model_type' =>  \App\User::class,
+                'model_id'=> $demoStaffId,
+            ]);
+            //Assign staff role
+            DB::table('model_has_roles')->insert([
+                'role_id' => 5,
+                'model_type' =>  \App\User::class,
+                'model_id'=> $demoStaffId2,
+            ]);
+
+            DB::table('hours')->insert([
+                'restorant_id' => $lastRestaurantId,
+                '0_from' => '00:01',
+                '0_to' => '23:58',
+                '1_from' => '00:01',
+                '1_to' => '23:58',
+                '2_from' => '00:01',
+                '2_to' => '23:58',
+                '3_from' => '00:01',
+                '3_to' => '23:58',
+                '4_from' => '00:01',
+                '4_to' => '23:58',
+                '5_from' => '00:01',
+                '5_to' => '23:58',
+                '6_from' => '00:01',
+                '6_to' => '23:58',
+            ]);
+
+            //App\Tables::where('restaurant_id',1)->where('restoarea_id',2)->select(['x','y','w','h','rounded'])->get()->toArray();
+            $planInside=[
+                [
+                  "x" => 90.14,
+                  "y" => 59.02,
+                  "w" => 120.0,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 87.65,
+                  "y" => 173.37,
+                  "w" => 120.0,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 86.12,
+                  "y" => 285.06,
+                  "w" => 120.0,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 82.89,
+                  "y" => 401.49,
+                  "w" => 121.19,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 317.66,
+                  "y" => 191.56,
+                  "w" => 193.5,
+                  "h" => 156.62,
+                  "rounded" => "yes",
+                ],
+                [
+                  "x" => 600.66,
+                  "y" => 295.35,
+                  "w" => 120.0,
+                  "h" => 120.0,
+                  "rounded" => "yes",
+                ],
+                [
+                  "x" => 595.45,
+                  "y" => 141.78,
+                  "w" => 120.0,
+                  "h" => 120.0,
+                  "rounded" => "yes",
+                ],
+                [
+                  "x" => 874.8,
+                  "y" => 45.66,
+                  "w" => 120.0,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 874.59,
+                  "y" => 177.19,
+                  "w" => 120.0,
+                  "h" => 191.45,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 871.71,
+                  "y" => 418.7,
+                  "w" => 120.0,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+            ];
+
+            $planTerrase=[
+                [
+                  "x" => 487.37,
+                  "y" => 284.18,
+                  "w" => 246.98,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 222.27,
+                  "y" => 285.05,
+                  "w" => 242.19,
+                  "h" => 87.0,
+                  "rounded" => "no",
+                ],
+                [
+                  "x" => 223.63,
+                  "y" => 86.4,
+                  "w" => 120.0,
+                  "h" => 120.0,
+                  "rounded" => "yes",
+                ],
+                [
+                  "x" => 420.13,
+                  "y" => 88.23,
+                  "w" => 120.0,
+                  "h" => 120.0,
+                  "rounded" => "yes",
+                ],
+                [
+                  "x" => 614.11,
+                  "y" => 90.74,
+                  "w" => 120.0,
+                  "h" => 120.0,
+                  "rounded" => "yes",
+                ],
+            ];
+            $areas = [['name'=>'Inside', 'count'=>10,'plan'=>$planInside], ['name'=>'Terrasse', 'count'=>5,'plan'=>$planTerrase]];
             foreach ($areas as $key => $restoarea) {
                 $lastAreaID = DB::table('restoareas')->insertGetId([
                     'name'=>$restoarea['name'],
@@ -185,6 +351,11 @@ class RestorantsTableSeeder extends Seeder
                         'name'=>'Table '.($i + 1),
                         'restaurant_id' => $id,
                         'restoarea_id' => $lastAreaID,
+                        'x'=>$restoarea['plan'][$i]['x'],
+                        'y'=>$restoarea['plan'][$i]['y'],
+                        'w'=>$restoarea['plan'][$i]['w'],
+                        'h'=>$restoarea['plan'][$i]['h'],
+                        'rounded'=>$restoarea['plan'][$i]['rounded'],
                     ]);
                 }
             }

@@ -1,2 +1,2 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 @include('items.variants.content')

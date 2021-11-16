@@ -10,7 +10,7 @@
    @endif
    <div class="custom-control custom-checkbox">
         <input type='hidden' value='false' name="{{ $id }}" id="{{ $id }}hid">
-        <input value="true" @if(isset($value)&&$value=="true") checked @endif  type="checkbox" class="custom-control-input" name="{{ $id }}" id="{{ $id }}">
+        <input value="true" @if( isset($value)&&  ($value=="true" || $value.""=="1") ) checked @endif  type="checkbox" class="custom-control-input" name="{{ $id }}" id="{{ $id }}">
         <label class="custom-control-label" for="{{ $id }}">{{ __($name) }}</label>
    </div>
    @isset($additionalInfo)

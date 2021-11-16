@@ -50,13 +50,30 @@
                         <!-- Comment -->
                         @include('cart.comment')
 
-                    @else
+                    @elseif(config('app.isqrsaas')&&count($timeSlots)>0)
 
                       <!-- QRSAAS -->
                       
                       <!-- DINE IN OR TAKEAWAY -->
                       @if (config('settings.enable_pickup'))
-                          @include('cart.localorder.dineiintakeaway')
+                      
+                          @if (in_array("poscloud", config('global.modules',[])) || in_array("deliveryqr", config('global.modules',[])) )
+                            <!-- We have POS in QR -->
+                            @include('cart.localorder.dineiintakeawaydeliver')
+
+                            <!-- Delivery adress -->
+                            <div class="qraddressBox" style="display: none">
+                              @include('cart.newaddress')
+                              <br />
+                            </div>
+                            
+                            
+                           
+                          @else
+                             <!-- Simple QR -->
+                            @include('cart.localorder.dineiintakeaway')
+                          @endif
+                          
                           <!-- Takeaway time slot -->
                           <div class="takeaway_picker" style="display: none">
                               @include('cart.time')
@@ -93,6 +110,9 @@
                         <!-- Delivery adress -->
                         @include('cart.newaddress')
 
+                        <!-- Client informations -->
+                        @include('cart.newclient')
+
                         <!-- Comment -->
                         @include('cart.comment')
                     @endif
@@ -109,10 +129,6 @@
             @if (count($timeSlots)>0)
                 <!-- Payment -->
                 @include('cart.payment')
-                <!--
-                  <br/>
-                  @include('cart.coupons')
-                -->
             @else
                 <!-- Closed restaurant -->
                 @include('cart.closed')
@@ -137,6 +153,8 @@
     var RESTORANT = <?php echo json_encode($restorant) ?>;
     var STRIPE_KEY="{{ config('settings.stripe_key') }}";
     var ENABLE_STRIPE="{{ config('settings.enable_stripe') }}";
+    var SYSTEM_IS_QR="{{ config('app.isqrexact') }}";
+    var SYSTEM_IS_WP="{{ config('app.iswp') }}";
     var initialOrderType = 'delivery';
     if(RESTORANT.can_deliver == 1 && RESTORANT.can_pickup == 0){
         initialOrderType = 'delivery';

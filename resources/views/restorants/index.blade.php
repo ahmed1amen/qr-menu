@@ -50,7 +50,7 @@
                                         <td>
                                             <a href="mailto: {{ $restorant->user?$restorant->user->email:""  }}">{{  $restorant->user?$restorant->user->email:__('Deleted')  }}</a>
                                         </td>
-                                        <td>{{ $restorant->created_at->format(config('settings.datetime_display_format')) }}</td>
+                                        <td>{{ $restorant->created_at->locale(Config::get('app.locale'))->isoFormat('LLLL') }}</td>
                                         <td>
                                            @if($restorant->active == 1)
                                                 <span class="badge badge-success">{{ __('Active') }}</span>

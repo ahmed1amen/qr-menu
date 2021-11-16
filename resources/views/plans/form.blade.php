@@ -19,7 +19,9 @@
             @include('partials.input',['name'=>'Stripe Pricing Plan ID','id'=>"stripe_id",'placeholder'=>"Product price plan id from Stripe starting with price_xxxxxx",'required'=>false,'value'=>(isset($plan)?$plan->stripe_id:null)])
         </div>
     @else
-        @include($theSelectedProcessor."-subscribe::planid")
+        @if(strtolower(config('settings.subscription_processor'))!='local')
+            @include($theSelectedProcessor."-subscribe::planid")
+        @endif
     @endif
 </div>
 
@@ -51,6 +53,12 @@
         <label class="custom-control-label" for="disabled">{{ __('Disabled') }}</label>
     </div>
 </div>
+
+
+<div class="col-md-6 mt-3">
+    @include('partials.input',['type'=>"number", 'name'=>'Orders limit per plan period','id'=>"limit_orders",'placeholder'=>"Number of orders per period",'required'=>false,'additionalInfo'=>"0 is unlimited numbers of orders per period",'value'=>(isset($plan)?$plan->limit_orders:null)])
+</div>
+
 </div>
 <br/>
 

@@ -21,33 +21,30 @@
                 @endif
 
 
-                @if(config('settings.is_demo'))
+                @if(config('settings.is_show_credentials',false))
+                <script>
+                    function loginAs(email) {
+                        document.getElementById("email").value = email;
+                        document.getElementById("password").value = "secret";
+                        document.getElementById("loginForm").submit()
+                    }
+                </script>
                 <div class="card bg-secondary shadow border-0">
                     <div class="card-body">
                         <div class="text-center text-muted mb-4">
-                           <h3>{{ __('DEMO credentials:') }}</h3>
+                            <br />
+                           <button type="button" onclick="loginAs('admin@example.com')" class="btn btn-outline-danger">Login as Admin</button><br /><br />
+                           <button type="button" onclick="loginAs('owner@example.com')" class="btn btn-outline-success">Login as Owner</button><br /><br />
+                           
+                           
+                           
 
-                            <small>
-                                <b>{{ __('ADMIN') }}</b><br/>
-                                {{ __('Username') }} <strong>admin@example.com</strong><br />
-                                {{ __('Password') }} <strong>secret</strong>
-                            </small>
-                            <small>
-                                <br /><br /><b>{{ __('OWNER') }}</b><br/>
-                                {{ __('Username') }} <strong>owner@example.com</strong><br />
-                                {{ __('Password') }} <strong>secret</strong>
-                            </small>
                             @if (config('app.isft'))
-                                <small>
-                                    <br /><br /><b>{{ __('DRIVER') }}</b><br/>
-                                    {{ __('Username') }} <strong>driver@example.com</strong><br />
-                                    {{ __('Password') }} <strong>secret</strong>
-                                </small>
-                                <small>
-                                    <br /><br /><b>{{ __('CLIENT') }}</b><br/>
-                                    {{ __('Username') }} <strong>client@example.com</strong><br />
-                                    {{ __('Password') }} <strong>secret</strong>
-                                </small>
+                                <button type="button" onclick="loginAs('driver@example.com')" class="btn btn-outline-info">Login as Driver</button><br /><br />
+                                <button type="button" onclick="loginAs('client@example.com')" class="btn btn-outline-primary">Login as Client</button><br /><br />
+                            @endif
+                            @if (config('settings.is_pos_cloud_mode'))
+                                <button type="button" onclick="loginAs('staff@example.com')" class="btn btn-outline-warning">Login as Staff</button><br /><br />
                             @endif
 
                         </div>
@@ -83,7 +80,7 @@
                         @endif
 
 
-                        <form role="form" method="POST" action="{{ route('login') }}">
+                        <form id="loginForm" role="form" method="POST" action="{{ route('login') }}">
                             @csrf
 
                             <div class="form-group{{ $errors->has('email') ? ' has-danger' : '' }} mb-3">
@@ -91,7 +88,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="ni ni-email-83"></i></span>
                                     </div>
-                                    <input class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" placeholder="{{ __('Email') }}" type="email" name="email" value="{{ old('email') }}" required autofocus>
+                                    <input id="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" placeholder="{{ __('Email') }}" type="email" name="email" value="{{ old('email') }}" required autofocus>
                                 </div>
                                 @if ($errors->has('email'))
                                     <span class="invalid-feedback" style="display: block;" role="alert">
@@ -104,7 +101,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
                                     </div>
-                                    <input class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" placeholder="{{ __('Password') }}" type="password" required>
+                                    <input id="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" placeholder="{{ __('Password') }}" type="password" required>
                                 </div>
                                 @if ($errors->has('password'))
                                     <span class="invalid-feedback" style="display: block;" role="alert">

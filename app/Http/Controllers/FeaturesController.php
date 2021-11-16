@@ -132,11 +132,10 @@ class FeaturesController extends Controller
     {
         $this->validateAccess();
         $fields = $this->getFields();
-        $fields[0]['value'] = $feature->image;
+        $fields[0]['value'] = $feature->image_link;
         $fields[1]['value'] = $feature->title;
         $fields[2]['value'] = $feature->description;
 
-        //dd($option);
         return view('general.form', ['setup' => [
             'title' => __('Edit this feature'),
             'action_link' => route('admin.landing.features.index'),

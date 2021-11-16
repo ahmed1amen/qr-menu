@@ -1,4 +1,9 @@
-<nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
+@if (in_array(config('app.locale'),['ar','he','fa','ur']))
+    <nav class="navbar navbar-vertical fixed-right navbar-expand-md navbar-light bg-white" id="sidenav-main">
+@else
+    <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
+@endif
+
     <div class="container-fluid">
         <!-- Toggler -->
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,6 +74,12 @@
 
             @if(auth()->user()->hasRole('owner'))
                 @include('layouts.navbars.menus.owner')
+            @else
+                <span></span>
+            @endif
+
+            @if(auth()->user()->hasRole('staff'))
+                @include('layouts.navbars.menus.staff')
             @else
                 <span></span>
             @endif

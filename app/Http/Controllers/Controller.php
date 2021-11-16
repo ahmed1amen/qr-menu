@@ -27,12 +27,18 @@ class Controller extends BaseController
 
         //Make the versions
         foreach ($versions as $key => $version) {
+            $ext="jpg";
+            if(isset($version['type'])){
+                $ext=$version['type'];
+            }
             if (isset($version['w']) && isset($version['h'])) {
                 $img = Image::make($laravel_image_resource->getRealPath())->fit($version['w'], $version['h']);
-                $img->save(public_path($folder).$uuid.'_'.$version['name'].'.'.'jpg');
+                $img->save(public_path($folder).$uuid.'_'.$version['name'].'.'.'jpg',100,$ext);
             } else {
                 //Original image
-                $laravel_image_resource->move(public_path($folder), $uuid.'_'.$version['name'].'.'.'jpg');
+                $img = Image::make($laravel_image_resource->getRealPath());
+                $img->save(public_path($folder).$uuid.'_'.$version['name'].'.'.'jpg',100,$ext);
+                //$laravel_image_resource->move(public_path($folder), $uuid.'_'.$version['name'].'.'.'jpg');
             }
         }
 
@@ -155,14 +161,17 @@ class Controller extends BaseController
                         }
                     }
 
+                    if($restaurant->free_deliver==1){
+                        $new_obj->cost_per_km = 0;
+                        $new_obj->cost_total = 0;
+                    }
+
                     $new_obj->rangeFound=$rangeFound;
 
                     $addresses[$address->id] = (object) $new_obj;
                 }
             }
         }
-
-        //dd($addresses);
         return $addresses;
     }
 
@@ -179,6 +188,13 @@ class Controller extends BaseController
     public function ownerOnly()
     {
         if (! auth()->user()->hasRole('owner')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    public function adminOnly()
+    {
+        if (! auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -257,10 +273,11 @@ class Controller extends BaseController
     {
         $name=$this->replace_spec_char($name);
         $name = str_replace(" ", "-", $name);
-        return strtolower(preg_replace('/[^A-Za-z0-9-]/', '', $name));
+        //return strtolower(preg_replace('/[^A-Za-z0-9-]/', '', $name));
+        return Str::slug($name, '');
     }
 
-    public function scopeIsWithinMaxDistance($query, $latitude, $longitude, $radius = 25, $table = 'restorants')
+    public function scopeIsWithinMaxDistance($query, $latitude, $longitude, $radius = 25, $table = 'companies')
     {
         $haversine = "(6371 * acos(cos(radians($latitude))
                         * cos(radians(".$table.'.lat))
@@ -287,7 +304,6 @@ class Controller extends BaseController
 
         $businessHours=$vendor->getBusinessHours();
         $now = new \DateTime('now', new \DateTimeZone($tz));
-        //dd($now);
         if($businessHours->isClosed()){
             return [];
         }
@@ -295,50 +311,40 @@ class Controller extends BaseController
 
          //Interval
          $intervalInMinutes = $vendor->getConfig('delivery_interval_in_minutes',config('settings.delivery_interval_in_minutes'));
-         //$intervalInMinutes=5;
 
         $from = Carbon::now()->setTimezone($tz)->diffInMinutes(Carbon::today()->setTimezone($tz)->startOfDay());
 
         $to = $this->getMinutes($businessHours->nextClose($now)->format('G:i'));
 
-        //dd( $from."   ".$to);
 
-    
-        //print_r('now: '.$from);
+
+        if($from>$to){
+            $to+=1440;
+           
+        }
+       
         //To have clear interval
         $missingInterval = $intervalInMinutes - ($from % $intervalInMinutes); //21
 
-        //dd($missingInterval);
-        //print_r('<br />missing: '.$missingInterval);
-
         //Time to prepare the order in minutes
         $timeToPrepare = $vendor->getConfig('time_to_prepare_order_in_minutes',config('settings.time_to_prepare_order_in_minutes')); //30
-        //$timeToPrepare=10;
+
 
         //First interval
         $from += $timeToPrepare <= $missingInterval ? $missingInterval : ($intervalInMinutes - (($from + $timeToPrepare) % $intervalInMinutes)) + $timeToPrepare;
 
         //Enlarge to, since that is not the delivery time
         $to+= $missingInterval+$intervalInMinutes+$timeToPrepare;
-        //$to+=2*30;
 
         $timeElements = [];
         for ($i = $from; $i <= $to; $i += $intervalInMinutes) {
-            array_push($timeElements, $i);
+            array_push($timeElements, $i%1440);
         }
-        //dd($timeElements);
-        //print_r("<br />");
-        //print_r($timeElements);
 
         $slots = [];
         for ($i = 0; $i < count($timeElements) - 1; $i++) {
             array_push($slots, [$timeElements[$i], $timeElements[$i + 1]]);
         }
-
-        //dd($slots);
-
-        //print_r("<br />SLOTS");
-        //print_r($slots);
 
         //INTERVALS TO TIME
         $formatedSlots = [];
@@ -346,44 +352,12 @@ class Controller extends BaseController
             $key = $slots[$i][0].'_'.$slots[$i][1];
             $value = $this->minutesToHours($slots[$i][0]).' - '.$this->minutesToHours($slots[$i][1]);
             $formatedSlots[$key] = $value;
-            //array_push($formatedSlots,[$key=>$value]);
         }
 
         return $formatedSlots;
     }
 
-     /*"0_from" => "09:00"
-  "0_to" => "20:00"
-  "1_from" => "09:00"
-  "1_to" => "20:00"
-  "2_from" => "09:00"
-  "2_to" => "20:00"
-  "3_from" => "09:00"
-  "3_to" => "20:00"
-  "4_from" => "09:00"
-  "4_to" => "20:00"
-  "5_from" => "09:00"
-  "5_to" => "17:00"
-  "6_from" => "09:00"
-  "6_to" => "17:00"*/
-
-    /*
-      "0_from" => "9:00 AM"
-    "0_to" => "8:10 PM"
-    "1_from" => "9:00 AM"
-    "1_to" => "8:00 PM"
-    "2_from" => "9:00 AM"
-    "2_to" => "8:00 PM"
-    "3_from" => "9:00 AM"
-    "3_to" => "8:00 PM"
-    "4_from" => "9:00 AM"
-    "4_to" => "8:00 PM"
-    "5_from" => "9:00 AM"
-    "5_to" => "5:00 PM"
-    "6_from" => "9:00 AM"
-    "6_to" => "5:00 PM"
-     */
-
+    
     public function getMinutes($time)
     {
         $parts = explode(':', $time);

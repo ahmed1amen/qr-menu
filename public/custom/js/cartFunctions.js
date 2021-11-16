@@ -1,11 +1,17 @@
 
 "use strict";
 var cartContent=null;
+var cartContentMobile=null;
 var cartTotal=null;
+var cartTotalMobile=null;
 var footerPages=null;
 var total=null;
 
 $('#localorder_phone').hide();
+
+
+
+
 /**
  *
  * @param {Number} net The net value
@@ -13,6 +19,11 @@ $('#localorder_phone').hide();
  * @param {Boolean} enableDelivery Disable or enable delivery
  */
 function updatePrices(net,delivery,enableDelivery){
+  net=parseFloat(net+"");
+  delivery=parseFloat(delivery+"");
+  var deduct=cartTotal.deduct;
+  console.log("Deduct is "+deduct);
+  
   var formatter = new Intl.NumberFormat(LOCALE, {
     style: 'currency',
     currency:  CASHIER_CURRENCY,
@@ -32,26 +43,45 @@ function updatePrices(net,delivery,enableDelivery){
     cartTotal.deliveryPriceFormated=formatter.format(delivery);
 
     //Total
-    cartTotal.withDelivery=net+delivery;
-    cartTotal.withDeliveryFormat=formatter.format(net+delivery);//+"==>"+new Date().getTime();
-    total.totalPrice=net+delivery;
+    var ndd=net+delivery-deduct;
+    cartTotal.withDelivery=ndd;
+    cartTotal.withDeliveryFormat=formatter.format(ndd);//+"==>"+new Date().getTime();
+    total.totalPrice=ndd;
+    
+    
 
-  }else{
+  }else{ 
     //No delivery
     //Delivery
     cartTotal.delivery=false;
-    //cartTotal.deliveryPrice=0;
-    //cartTotal.deliveryPriceFormated=formatter.format(0);
 
     //Total
-    cartTotal.withDelivery=net;
-    cartTotal.withDeliveryFormat=formatter.format(net);
-    total.totalPrice=net;
+    var nd=net-deduct;
+    cartTotal.withDelivery=nd;
+    cartTotal.withDeliveryFormat=formatter.format(nd);
+    total.totalPrice=nd;
   }
   total.lastChange=new Date().getTime();
   cartTotal.lastChange=new Date().getTime();
-  console.log("Price update");
+  console.log("DAta");
+console.log(cartTotal)
+  console.log("Total is "+total.totalPrice);
+  console.log("Total is "+cartTotal.withDelivery);
+  
 
+}
+
+function setDeduct(deduction){
+  var formatter = new Intl.NumberFormat(LOCALE, {
+    style: 'currency',
+    currency:  CASHIER_CURRENCY,
+  });
+
+  cartTotal.deduct=deduction;
+  cartTotal.deductFormat=formatter.format(deduction);
+  total.lastChange=null;
+  cartTotal.lastChange=null;
+  getCartContentAndTotalPrice();
 }
 
 function updateSubTotalPrice(net,enableDelivery){
@@ -65,17 +95,18 @@ function updateSubTotalPrice(net,enableDelivery){
 function getCartContentAndTotalPrice(){
    axios.get('/cart-getContent').then(function (response) {
     cartContent.items=response.data.data;
+    //cartContentMobile.items=response.data.data;
     updateSubTotalPrice(response.data.total,true);
    })
    .catch(function (error) {
-     console.log(error);
+     
    });
  };
 
-$("#promo_code_btn").click(function() {
+$("#promo_code_btn").on('click',function() {
     var code = $('#coupon_code').val();
 
-    axios.post('/coupons/apply', {code: code}).then(function (response) {
+    axios.post('/coupons/apply', {code: code,cartValue:cartTotal.totalPrice}).then(function (response) {
         if(response.data.status){
             $("#promo_code_btn").attr("disabled",true);
             $("#promo_code_btn").attr("readonly");
@@ -83,8 +114,12 @@ $("#promo_code_btn").click(function() {
             $("#promo_code_war").hide();
             $("#promo_code_succ").show();
 
-            updateSubTotalPrice(response.data.total,true);
-            js.notify(response.data.msg,"warning");
+            setDeduct(response.data.deduct);
+            js.notify(response.data.msg,"success");
+
+            $('#promo_code_btn').hide();
+
+            //$( "#coupon_code" ).prop( "disabled", true );
         }else{
             $("#promo_code_succ").hide();
             $("#promo_code_war").show();
@@ -92,12 +127,12 @@ $("#promo_code_btn").click(function() {
             js.notify(response.data.msg,"warning");
         }
     }).catch(function (error) {
-        console.log(error);
+        
     });
 
 });
 
-$("#fborder_btn").click(function() {
+$("#fborder_btn").on('click',function() {
 
     var address = $('#addressID').val();
     var comment = $('#comment').val();
@@ -131,7 +166,7 @@ $("#fborder_btn").click(function() {
 
         }
       }).catch(function (error) {
-        console.log(error);
+        
       });
 });
 
@@ -143,7 +178,7 @@ function removeProductIfFromCart(product_id){
     axios.post('/cart-remove', {id:product_id}).then(function (response) {
       getCartContentAndTotalPrice();
     }).catch(function (error) {
-      console.log(error);
+      
     });
  }
 
@@ -155,7 +190,7 @@ function incCart(product_id){
   axios.get('/cartinc/'+product_id).then(function (response) {
     getCartContentAndTotalPrice();
   }).catch(function (error) {
-    console.log(error);
+    
   });
 }
 
@@ -164,7 +199,7 @@ function decCart(product_id){
   axios.get('/cartdec/'+product_id).then(function (response) {
     getCartContentAndTotalPrice();
   }).catch(function (error) {
-    console.log(error);
+    
   });
 }
 
@@ -174,20 +209,22 @@ function getPages(){
       footerPages.pages=response.data.data;
     })
     .catch(function (error) {
-      console.log(error);
+      
     });
 
 };
 
 function dineTypeSwitch(mod){
-  console.log("Change mod to "+mod);
+  
 
   $('.tablepicker').hide();
   $('.takeaway_picker').hide();
+  $('.qraddressBox').hide();
 
   if(mod=="dinein"){
     $('.tablepicker').show();
     $('.takeaway_picker').hide();
+    $('.qraddressBox').hide();
 
     //phone
     $('#localorder_phone').hide();
@@ -196,15 +233,27 @@ function dineTypeSwitch(mod){
   if(mod=="takeaway"){
       $('.tablepicker').hide();
       $('.takeaway_picker').show();
+      $('.c').hide();
 
     //phone
     $('#localorder_phone').show();
   }
 
+
+
+  if(mod=="delivery"){
+    $('.tablepicker').hide();
+    $('.takeaway_picker').hide();
+    $('.qraddressBox').show();
+
+  //phone
+  $('#localorder_phone').show();
+}
+
 }
 
 function orderTypeSwither(mod){
-      console.log("Change mod to "+mod);
+      
 
       $('.delTime').hide();
       $('.picTime').hide();
@@ -224,10 +273,10 @@ function orderTypeSwither(mod){
 
 setTimeout(function(){
   if(typeof initialOrderType !== 'undefined'){
-    console.log("Will change now to "+initialOrderType+" --");
+    
     orderTypeSwither(initialOrderType);
   }else{
-    console.log("No initialOrderType");
+    
   }
 
 },1000);
@@ -235,7 +284,7 @@ setTimeout(function(){
 function chageDeliveryCost(deliveryCost){
   $("#deliveryCost").val(deliveryCost);
   updatePrices(cartTotal.totalPrice,deliveryCost,true);
-  console.log("Done updatin delivery price");
+  
 }
 
  //First we beed to capture the event of chaning of the address
@@ -243,9 +292,30 @@ function chageDeliveryCost(deliveryCost){
     $("#addressID").change(function() {
       //The delivery cost
       var deliveryCost=$(this).find(':selected').data('cost');
+      
+      
+
+      //We now need to pass this cost to some parrent funct for handling the delivery cost change
+      if(deliveryCost!=undefined){
+        chageDeliveryCost(deliveryCost);
+      }
+      
+
+
+    });
+
+  }
+
+  function deliveryAreaSwithcer(){
+    $("#delivery_area").change(function() {
+      //The delivery cost
+      var deliveryCost=$(this).find(':selected').data('cost');
+      
+      
 
       //We now need to pass this cost to some parrent funct for handling the delivery cost change
       chageDeliveryCost(deliveryCost);
+      
 
 
     });
@@ -260,7 +330,7 @@ function chageDeliveryCost(deliveryCost){
   }
 
   function dineTypeSwitcher(){
-    $('input:radio[name="dineType"]').change(function() {
+    $('input:radio[name="dineType"]').on('change',function() {
       $('.delTimeTS').hide();
       $('.picTimeTS').show();
       dineTypeSwitch($(this).val());
@@ -295,7 +365,7 @@ function chageDeliveryCost(deliveryCost){
 
 window.onload = function () {
 
-  console.log("Cart function called");
+  
 
   //VUE CART
   cartContent = new Vue({
@@ -303,6 +373,31 @@ window.onload = function () {
     data: {
       items: [],
     },
+    methods: {
+      remove: function (product_id) {
+        removeProductIfFromCart(product_id);
+      },
+      incQuantity: function (product_id){
+        incCart(product_id)
+      },
+      decQuantity: function (product_id){
+        decCart(product_id)
+      },
+    }
+  })
+
+   //VUE CART Mobile
+   cartContentMobile = new Vue({
+    el: '#cartListMobile',
+    data: {
+      items: []
+    },
+    computed: {
+      items: function () {
+        return cartContent.items
+      }
+    },
+    
     methods: {
       remove: function (product_id) {
         removeProductIfFromCart(product_id);
@@ -331,6 +426,9 @@ window.onload = function () {
   //Activate address switcher
   deliveryAddressSwithcer();
 
+  //Activate deliveryAreaSwithcer
+  deliveryAreaSwithcer();
+
 
   //VUE FOOTER PAGES
   footerPages = new Vue({
@@ -354,11 +452,55 @@ window.onload = function () {
     el: '#totalPrices',
     data: {
       totalPrice:0,
+      deduct:0,
+      deductFormat:"",
       minimalOrder:0,
       totalPriceFormat:"",
       deliveryPriceFormated:"",
+      withDeliveryFormat:"",
       delivery:true,
     }
+  })
+
+  //VUE TOTAL Mobile
+  cartTotalMobile= new Vue({
+    el: '#totalPricesMobile',
+    data: {
+      totalPrice:0,
+      deduct:0,
+      deductFormat:"",
+      minimalOrder:0,
+      totalPriceFormat:"",
+      deliveryPriceFormated:"",
+      withDeliveryFormat:"",
+      delivery:true,
+    },
+    computed: {
+      totalPrice: function () {
+        return cartTotal.totalPrice
+      },
+      deduct: function () {
+        return cartTotal.deduct
+      },
+      deductFormat: function () {
+        return cartTotal.deductFormat
+      },
+      minimalOrder: function () {
+        return cartTotal.minimalOrder
+      },
+      totalPriceFormat: function () {
+        return cartTotal.totalPriceFormat
+      },
+      deliveryPriceFormated: function () {
+        return cartTotal.deliveryPriceFormated
+      },
+      withDeliveryFormat: function () {
+        return cartTotal.withDeliveryFormat
+      },
+      delivery: function () {
+        return cartTotal.delivery
+      }
+    },
   })
 
   //Call to get the total price and items
@@ -378,17 +520,21 @@ window.onload = function () {
               .then(function (response) {
                   if(response.data.status){
                     $('#productModal').modal('hide');
+                    //$('#productModal').modal('close');
                     getCartContentAndTotalPrice();
-
-                    //$('#miniCart').addClass( "open" );
-                    openNav();
+                    if (TEMPLATE_USED== "defaulttemplate") { 
+                      openNav();
+                    }
+                    
+                    //$('#productModal').modal('close');
                   }else{
                     $('#productModal').modal('hide');
+                    //$('#productModal').modal('close');
                     js.notify(response.data.errMsg,"warning");
                   }
               })
               .catch(function (error) {
-                console.log(error);
+                
               });
         },
     },

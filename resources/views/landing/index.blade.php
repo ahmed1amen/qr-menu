@@ -17,7 +17,7 @@
                 <div class="col text-right">
                   <div class="dropdown">
                     <a href="#" class="btn btn-default btn-sm dropdown-toggle " data-toggle="dropdown" id="navbarDropdownMenuLink2">
-                        <img src="{{ asset('images') }}/icons/flags/{{ strtoupper(config('app.locale'))}}.png" /> {{ $currentLanguage }}
+                        <!--<img src="{{ asset('images') }}/icons/flags/{{ strtoupper(config('app.locale'))}}.png" />--> {{ $currentLanguage }}
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
                         @foreach ($availableLanguages as $languageKey => $languageName)

@@ -15,4 +15,11 @@ class RestoArea extends Model
     {
         return $this->hasMany(\App\Tables::class, 'restoarea_id', 'id');
     }
+
+
+
+    public function restorant()
+    {
+        return $this->belongsTo(\App\Restorant::class,'restaurant_id');
+    }
 }

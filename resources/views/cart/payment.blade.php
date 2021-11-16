@@ -14,11 +14,18 @@
 
                             <span v-if="totalPrice"><strong>{{ __('Subtotal') }}:</strong></span>
                             <span v-if="totalPrice" class="ammount"><strong>@{{ totalPriceFormat }}</strong></span>
-                            @if(config('app.isft'))
-                                <span v-if="totalPrice&&delivery"><br /><strong>{{ __('Delivery') }}:</strong></span>
-                                <span v-if="totalPrice&&delivery" class="ammount"><strong>@{{ deliveryPriceFormated }}</strong></span><br />
+                            @if(config('app.isft')||config('settings.is_whatsapp_ordering_mode')|| in_array("poscloud", config('global.modules',[])) || in_array("deliveryqr", config('global.modules',[])) )
+                                <span v-if="totalPrice&&deliveryPrice>0"><br /><strong>{{ __('Delivery') }}:</strong></span>
+                                <span v-if="totalPrice&&deliveryPrice>0" class="ammount"><strong>@{{ deliveryPriceFormated }}</strong></span><br />
                             @endif
-                            <br />
+                            <br />  
+                            <div v-if="deduct"> 
+                                <span v-if="deduct">{{ __('Applied coupon discount') }}:</span>
+                                <span v-if="deduct" class="ammount">@{{ deductFormat }}</span>
+                                <br />  
+                                <br />  
+                            </div>
+                           
                             <span v-if="totalPrice"><strong>{{ __('TOTAL') }}:</strong></span>
                             <span v-if="totalPrice" class="ammount"><strong>@{{ withDeliveryFormat   }}</strong></span>
                             <input v-if="totalPrice" type="hidden" id="tootalPricewithDeliveryRaw" :value="withDelivery" />
@@ -28,6 +35,13 @@
             </div>
         </div>
         <!-- End price overview -->
+
+        @if(in_array("coupons", config('global.modules',[])))
+            <!-- Coupons -->
+            @include('cart.coupons')
+            <!-- End coupons -->
+        @endif
+
 
         <!-- Payment  Methods -->
         <div class="cards">
@@ -74,6 +88,18 @@
 
         <!-- END Payment -->
 
+        <div class="text-center">
+            <div class="custom-control custom-checkbox mb-3">
+                <input class="custom-control-input" id="privacypolicy" type="checkbox">
+                <!--<label class="custom-control-label" for="privacypolicy">{{ __('I agree to the Terms and Conditions and Privacy Policy') }}</label>-->
+                <label class="custom-control-label" for="privacypolicy">
+                    &nbsp;&nbsp;{{__('I agree to the')}}
+                    <a href="{{config('settings.link_to_ts')}}" target="_blank" style="text-decoration: underline;">{{__('Terms of Service')}}</a> {{__('and')}}
+                    <a href="{{config('settings.link_to_pr')}}" target="_blank" style="text-decoration: underline;">{{__('Privacy Policy')}}</a>.
+                </label>
+            </div>
+        </div><br />
+
         <!-- Payment Actions -->
         @if(!config('settings.social_mode'))
 
@@ -99,18 +125,8 @@
         @endif
         <!-- END Payment Actions -->
 
-        <br/><br/>
-        <div class="text-center">
-            <div class="custom-control custom-checkbox mb-3">
-                <input class="custom-control-input" id="privacypolicy" type="checkbox">
-                <!--<label class="custom-control-label" for="privacypolicy">{{ __('I agree to the Terms and Conditions and Privacy Policy') }}</label>-->
-                <label class="custom-control-label" for="privacypolicy">
-                    &nbsp;&nbsp;{{__('I agree to the')}}
-                    <a href="{{config('settings.link_to_ts')}}" target="_blank" style="text-decoration: underline;">{{__('Terms of Service')}}</a> {{__('and')}}
-                    <a href="{{config('settings.link_to_pr')}}" target="_blank" style="text-decoration: underline;">{{__('Privacy Policy')}}</a>.
-                </label>
-            </div>
-        </div>
+        <br/>
+        
 
       </div>
       <br />

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'version' => '2.4.1',
+    'version' => '3.0.2',
     'env'=>[
         [
             'name'=>'Setup',
@@ -16,25 +16,26 @@ return [
                 ['title'=>'Enable guest log', 'key'=>'ENABLE_GUEST_LOG', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 ['title'=>'Hide project branding on menu page', 'key'=>'HIDE_PROJECT_BRANDING', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 ['title'=>'Disable the landing page', 'help'=>'When landing page is disabled, the project will start from the login page. In this case it is best to have the system in subdomain', 'key'=>'DISABLE_LANDING', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
+                ['title'=>'Front end template', 'key'=>'FRONT_END_TEMPLATE', 'value'=>'defaulttemplate', 'ftype'=>'select', 'data'=>[]],
                 
                 ['separator'=>'Ordering and items', 'title'=>'Completely disable ordering', 'key'=>'QRSAAS_DISABLE_ODERING', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'qrsaas', 'help'=>'If this is selected, then cart, and orders will not be shown'],
                 ['title'=>'Directly approve order', 'help'=>'When selected admin does not have to approve order', 'key'=>'APP_ORDER_APPROVE_DIRECTLY', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
                 ['title'=>'Assign orders to drivers automatically', 'key'=>'ALLOW_AUTOMATED_ASSIGN_TO_DRIVER', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['title'=>'Allow restaurant to do their own delivery', 'key'=>'APP_ALLOW_SELF_DELIVER', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['title'=>'Time for order to be prepared', 'help'=>'Average time order is prepared, so users can not order before restaurant or shop is closing', 'key'=>'TIME_TO_PREPARE_ORDER_IN_MINUTES', 'value'=>0, 'type'=>'number', 'onlyin'=>'ft'],
-                ['title'=>'Search radius for restaurants', 'help'=>'Maximum distance that restaurants are shown to user', 'key'=>'LOCATION_SEARCH_RADIUS', 'value'=>50, 'type'=>'number', 'onlyin'=>'ft'],
+                ['title'=>'Allow vendor to do their own delivery', 'key'=>'APP_ALLOW_SELF_DELIVER', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
+                ['title'=>'Time for order to be prepared', 'help'=>'Average time order is prepared, so users can not order before vendor or shop is closing', 'key'=>'TIME_TO_PREPARE_ORDER_IN_MINUTES', 'value'=>0, 'type'=>'hidden', 'onlyin'=>'ft'],
+                ['title'=>'Search radius for vendors', 'help'=>'Maximum distance that vendors are shown to user', 'key'=>'LOCATION_SEARCH_RADIUS', 'value'=>50, 'type'=>'number', 'onlyin'=>'ft'],
                 ['title'=>'Search radius for drivers', 'help'=>'When you have automatic assign to driver, this is a way to show the system for the maximum range to look for driver', 'key'=>'DRIVER_SEARCH_RADIUS', 'value'=>15, 'type'=>'number', 'onlyin'=>'ft'],
-                ['title'=>'Disable continues orders', 'help'=>'If enabled, orders done on same table will be merged, until order is not closed/finished by restaurant', 'key'=>'DISABLE_CONTINIUS_ORDERING', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
+                ['title'=>'Disable continues orders', 'help'=>'If enabled, orders done on same table will be merged, until order is not closed/finished by vendor', 'key'=>'DISABLE_CONTINIUS_ORDERING', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 ['title'=>'Enable pickup , system wide', 'key'=>'ENABLE_PICKUP', 'value'=>'true', 'ftype'=>'bool'],
                 ['title'=>'Hide cash on delivery, system wide', 'key'=>'HIDE_COD', 'value'=>'false', 'ftype'=>'bool'],
                 ['title'=>'Delivery / time intervals in minutes', 'help'=>'Separate the time slots into N Minutes. ex 09:00-09-15 , 09:15-09:30 - value is 15 ', 'key'=>'DELIVERY_INTERVAL_IN_MINUTES', 'value'=>30, 'type'=>'number'],
-                ['title'=>'Default payment type', 'key'=>'DEFAULT_PAYMENT', 'value'=>'cod', 'ftype'=>'select', 'data'=>['cod'=>'Cash on Deliver', 'stripe'=>'Stripe Card processing']],
+                ['title'=>'Default payment type', 'key'=>'DEFAULT_PAYMENT', 'value'=>'cod', 'ftype'=>'select', 'data'=>['cod'=>'Cash on Delivery', 'stripe'=>'Stripe Card processing']],
                 ['title'=>'Is your project multi city', 'help'=>'When selected, the front page will display list of cities', 'key'=>'MULTI_CITY', 'value'=>'true', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['title'=>'Single mode - run this site for one restaurant only', 'key'=>'SINGLE_MODE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
-                ['title'=>'The id of the restaurant for single mode', 'help'=>'If you have single mode selected, than this restaurant id will be show', 'key'=>'SINGLE_MODE_ID', 'value'=>'1', 'type'=>'number', 'onlyin'=>'ft'],
-                ['title'=>'Enable import via CSV for restaurant items', 'key'=>'ENABLE_IMPORT_CSV', 'value'=>'false', 'ftype'=>'bool'],
+                ['title'=>'Single mode - run this site for one vendor only', 'key'=>'SINGLE_MODE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
+                ['title'=>'The id of the vendor for single mode', 'help'=>'If you have single mode selected, than this vendor id will be show', 'key'=>'SINGLE_MODE_ID', 'value'=>'1', 'type'=>'number', 'onlyin'=>'ft'],
+                ['title'=>'Enable import via CSV for vendor items', 'key'=>'ENABLE_IMPORT_CSV', 'value'=>'false', 'ftype'=>'bool'],
 
-                ['title'=>'Enable WhatsApp ordering', 'key'=>'IS_WHATSAPP_ORDERING_MODE', 'value'=>'false', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
+                ['title'=>'Enable WhatsApp ordering', 'key'=>'IS_WHATSAPP_ORDERING_MODE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'qrsaas'],
                 
                 ['separator'=>'Delivery costs', 'title'=>'Enable cost per distance', 'key'=>'ENABLE_COST_PER_DISTANCE', 'value'=>'false', 'ftype'=>'bool', 'onlyin'=>'ft'],
                 ['title'=>'Cost per kilometer', 'key'=>'COST_PER_KILOMETER', 'value'=>'1', 'onlyin'=>'ft'],
@@ -53,22 +54,27 @@ return [
 
                 ['title'=>'Driver percent from the order', 'help'=>'From 0-100. Based on your business type, this value determines how much driver will make from the delivery fee. This value can be change on driver level also', 'key'=>'DRIVER_PERCENT_FROM_DELIVERY_FEE', 'value'=>'100', 'onlyin'=>'ft'],
 
-                ['title'=>'Demo restaurant slug', 'separator'=>'Other settings', 'help'=>'Enter the domain - slug of your demo restaurant that will show on the landing page', 'key'=>'demo_restaurant_slug', 'value'=>'leukapizza', 'onlyin'=>'qrsaas'],
-                ['title'=>'Url route for restaurant', 'help'=>'If you want to change the link the restaurant is open in. ex yourdomain.com/shop/shopname. shop - should be the value here', 'key'=>'URL_ROUTE', 'value'=>'restaurant'],
+                ['title'=>'Demo vendor slug', 'separator'=>'Other settings', 'help'=>'Enter the domain - slug of your demo vendor that will show on the landing page', 'key'=>'demo_restaurant_slug', 'value'=>'leukapizza', 'onlyin'=>'qrsaas'],
+                ['title'=>'Vendor entity name', 'help'=>'Ex. Company, Restaurant, Shop, Business etc', 'key'=>'VENDOR_ENTITY_NAME', 'value'=>'Restaurant'],
+                ['title'=>'Vendor entity name in plural', 'help'=>'Ex. Companies, Restaurants, Shops, Businesses etc', 'key'=>'VENDOR_ENTITY_NAME_PLURAL', 'value'=>'Restaurants'],
+                ['title'=>'Url route for vendor', 'help'=>'If you want to change the link the vendor is open in. ex yourdomain.com/shop/shopname. shop - should be the value here', 'key'=>'URL_ROUTE', 'value'=>'restaurant'],
+                ['title'=>'Url route for vendor in plural', 'help'=>'If you want to change the link the vendor management is open in. ex yourdomain.com/shops. shops - should be the value here', 'key'=>'URL_ROUTE_PLURAL', 'value'=>'restaurants'],
+                ['title'=>'Apps download code', 'help'=>'If you have extended license, or some specific product, we will send you App download code. Send us ticket.', 'key'=>'EXTENDED_LICENSE_DOWNLOAD_CODE', 'value'=>''], 
                 ['title'=>'Print templates images', 'help'=>'Links to images representing the images for the templates. You can use remote images', 'key'=>'templates', 'value'=>'/impactfront/img/menu_template_1.jpg,/impactfront/img/menu_template_2.jpg', 'onlyin'=>'qrsaas'],
                 ['title'=>'Print templates zip', 'help'=>'Link to .zip representing the template for download. You can use remote file', 'key'=>'linkToTemplates', 'value'=>'/impactfront/img/templates.zip', 'onlyin'=>'qrsaas'],
 
-                ['title'=>'Enable multi language menus', 'help'=>'When enabled, restaurants can add language version to the menu', 'key'=>'ENABLE_MILTILANGUAGE_MENUS', 'value'=>'false', 'ftype'=>'bool'],
+                ['title'=>'Chars in menu list', 'key'=>'CHARS_IN_MENU_LIST', 'value'=>'40', 'type'=>"number", 'help'=>'Controls to how many chars the menu description should be trimmed'],
+                ['title'=>'Enable multi language menus', 'help'=>'When enabled, vendors can add language version to the menu', 'key'=>'ENABLE_MILTILANGUAGE_MENUS', 'value'=>'false', 'ftype'=>'bool'],
 
                 ['title'=>'Enable change log in update screen', 'key'=>'ENABLE_CHANGELOG_IN_UPDATE', 'value'=>'true', 'ftype'=>'bool'],
 
                 ['title'=>'Position for the register driver link', 'key'=>'DRIVER_LINK_REGISTER_POSITION', 'value'=>'footer', 'data'=>['footer'=>'Footer', 'navbar'=>'Navigation bar', 'dontshow'=>'Hidden'], 'ftype'=>'select', 'onlyin'=>'ft'],
-                ['title'=>'Position for the register restaurant link', 'key'=>'RESTAURANT_LINK_REGISTER_POSITION', 'value'=>'footer', 'data'=>['footer'=>'Footer', 'navbar'=>'Navigation bar', 'dontshow'=>'Hidden'], 'ftype'=>'select', 'onlyin'=>'ft'],
+                ['title'=>'Position for the register vendor link', 'key'=>'RESTAURANT_LINK_REGISTER_POSITION', 'value'=>'footer', 'data'=>['footer'=>'Footer', 'navbar'=>'Navigation bar', 'dontshow'=>'Hidden'], 'ftype'=>'select', 'onlyin'=>'ft'],
 
                 ['title'=>'Title of driver link', 'key'=>'DRIVER_LINK_REGISTER_TITLE', 'value'=>'Wanna drive for us?', 'onlyin'=>'ft'],
-                ['title'=>'Title for the register restaurant link', 'key'=>'RESTAURANT_LINK_REGISTER_TITLE', 'value'=>'Add your restaurant', 'onlyin'=>'ft'],
+                ['title'=>'Title for the register vendor link', 'key'=>'RESTAURANT_LINK_REGISTER_TITLE', 'value'=>'Add your vendor', 'onlyin'=>'ft'],
 
-                ['title'=>'Mobile app secret', 'key'=>'APP_SECRET', 'value'=>'APP_SECRET', 'onlyin'=>'ft'],
+                ['title'=>'Mobile app secret', 'key'=>'APP_SECRET', 'value'=>'APP_SECRET'],
                 ['title'=>'App environment', 'key'=>'APP_ENV', 'value'=>'local', 'ftype'=>'select', 'data'=>['local'=>'Local', 'prodcution'=>'Production']],
                 ['title'=>'Debug app level', 'type'=>'hidden', 'key'=>'APP_LOG_LEVEL', 'value'=>'debug', 'data'=>['debug'=>'Debug', 'error'=>'Error']],
                 ['separator'=>'Links', 'title'=>'Link to terms and services', 'key'=>'LINK_TO_TS', 'value'=>"/blog/terms-and-conditions"],
@@ -85,20 +91,24 @@ return [
             'slug'=>'finances',
             'icon'=>'ni ni-money-coins',
             'fields'=>[
-                ['separator'=>'General', 'title'=>'Tool used for subscriptions', 'key'=>'SUBSCRIPTION_PROCESSOR', 'value'=>'Stripe', 'ftype'=>'select', 'data'=>[], 'onlyin'=>'qrsaas'],
-                ['key'=>'ENABLE_PRICING', 'value'=>'true', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
-                ['title'=>'', 'key'=>'FREE_PRICING_ID', 'value'=>'1', 'type'=>'hidden', 'onlyin'=>'qrsaas'],
+                ['separator'=>'General', 'title'=>'Tool used for subscriptions', 'key'=>'SUBSCRIPTION_PROCESSOR', 'value'=>'Stripe', 'ftype'=>'select', 'data'=>[]],
+                ['title'=>'Enable Pricing','key'=>'ENABLE_PRICING', 'value'=>'true', 'ftype'=>'bool'],
+                ['title'=>'The free plan ID','title'=>'', 'key'=>'FREE_PRICING_ID', 'value'=>'1'],
+                ['title'=>'Force users to use paid plan','title'=>'', 'key'=>'FORCE_USERS_TO_PAY', 'value'=>'false','ftype'=>'bool'],
+
+                
                 ['title'=>'Enable Finance dashboard for owner', 'help'=>'More advance, finance related reports for owner', 'key'=>'ENABLE_FINANCES_OWNER', 'value'=>'true', 'ftype'=>'bool'],
                 ['title'=>'Enable Finance dashboard for admin', 'key'=>'ENABLE_FINANCES_ADMIN', 'help'=>'More advance, finance related reports for admin', 'value'=>'true', 'ftype'=>'bool'],
+
 
                 ['separator'=>'Stripe', 'title'=>'Enable stripe for payments when ordering', 'key'=>'ENABLE_STRIPE', 'value'=>'true', 'ftype'=>'bool'],
                 ['title'=>'Stripe API key', 'key'=>'STRIPE_KEY', 'value'=>'pk_test_XXXXXXXXXXXXXX'],
                 ['title'=>'Stripe API Secret', 'key'=>'STRIPE_SECRET', 'value'=>'sk_test_XXXXXXXXXXXXXXX'],
-                ['title'=>'Enable Stripe connect', 'help'=>'If enabled, restaurants will be able to connect, and money to be send directly to them', 'key'=>'ENABLE_STRIPE_CONNECT', 'value'=>'true', 'ftype'=>'bool'],
+                ['title'=>'Enable Stripe connect', 'help'=>'If enabled, vendors will be able to connect, and money to be send directly to them', 'key'=>'ENABLE_STRIPE_CONNECT', 'value'=>'true', 'ftype'=>'bool'],
                 ["title"=> "System will use", "key" => "VENDORS_OR_ADMIN_STRIPE", "ftype" => "select", "onlyin"=>"qrsaas", "value"=>"admin","data"=>[ "admin"=>"Admin defined Stripe", "vendor"=>"Vendor defined Stripe"]],
 
-                ['separator'=>'Local bank transfer', 'title'=>'Local bank transfer explanation', 'key'=>'LOCAL_TRANSFER_INFO', 'value'=>'Wire us the plan amout on the following bank accoun. And inform us about the wire.', 'onlyin'=>'qrsaas'],
-                ['title'=>'Bank Account', 'key'=>'LOCAL_TRANSFER_ACCOUNT', 'value'=>'IBAN: 12112121212121', 'onlyin'=>'qrsaas'],
+                ['separator'=>'Local bank transfer', 'title'=>'Local bank transfer explanation', 'key'=>'LOCAL_TRANSFER_INFO', 'value'=>'Wire us the plan amout on the following bank accoun. And inform us about the wire.'],
+                ['title'=>'Bank Account', 'key'=>'LOCAL_TRANSFER_ACCOUNT', 'value'=>'IBAN: 12112121212121'],
                 
                 ],
         ],
@@ -125,8 +135,8 @@ return [
                 ['title'=>'Facebook client id', 'key'=>'FACEBOOK_CLIENT_ID', 'value'=>'', 'onlyin'=>'ft'],
                 ['title'=>'Facebook client secret', 'key'=>'FACEBOOK_CLIENT_SECRET', 'value'=>'', 'onlyin'=>'ft'],
                 ['title'=>'Facebook redirec', 'key'=>'FACEBOOK_REDIRECT', 'value'=>'', 'onlyin'=>'ft'],
-                ['separator'=>'Notifications', 'title'=>'Onesignal App id', 'key'=>'ONESIGNAL_APP_ID', 'value'=>'','onlyin'=>'ft'],
-                ['title'=>'Onesignal rest api key', 'key'=>'ONESIGNAL_REST_API_KEY', 'value'=>'','onlyin'=>'ft'],
+                ['separator'=>'Notifications', 'title'=>'Onesignal App id', 'key'=>'ONESIGNAL_APP_ID', 'value'=>''],
+                ['title'=>'Onesignal rest api key', 'key'=>'ONESIGNAL_REST_API_KEY', 'value'=>''],
                 ['title'=>'Twillo Account SID', 'key'=>'TWILIO_ACCOUNT_SID', 'value'=>'SID', 'onlyin'=>'ft'],
                 ['title'=>'Twillo Account auth token', 'key'=>'TWILIO_AUTH_TOKEN', 'value'=>'TOKEN', 'onlyin'=>'ft'],
                 ['title'=>'Twillo from number', 'key'=>'TWILIO_FROM', 'value'=>'NUMBER', 'onlyin'=>'ft'],
@@ -154,7 +164,7 @@ return [
                 ['title'=>'Mail driver', 'key'=>'MAIL_MAILER', 'value'=>'smtp', 'ftype'=>'select', 'data'=>['smtp'=>'SMTP', 'sendmail'=>'PHP Sendmail - best of port 465']],
                 ['title'=>'Host', 'key'=>'MAIL_HOST', 'value'=>'smtp.mailtrap.io', 'hint'=>'Your SMTP send server'],
                 ['title'=>'Port', 'key'=>'MAIL_PORT', 'value'=>'2525', 'help'=>'Common ports are 26, 465, 587'],
-                ['title'=>'Encryption', 'key'=>'MAIL_ENCRYPTION', 'value'=>'', 'ftype'=>'select', 'data'=>['null'=>'Null - best for port 26', ''=>'None - best for port 587', 'ssl'=>'SSL - best for port 465']],
+                ['title'=>'Encryption', 'key'=>'MAIL_ENCRYPTION', 'value'=>'', 'ftype'=>'select', 'data'=>['null'=>'Null - best for port 26', ''=>'None - best for port 587', 'ssl'=>'SSL - best for port 465','tls'=>"TLS",'starttls'=>"STARTTLS"]],
 
                 ['title'=>'Username', 'key'=>'MAIL_USERNAME', 'value'=>'802fc656dd8029'],
                 ['title'=>'Password', 'key'=>'MAIL_PASSWORD', 'value'=>'bbcf39d313eac6'],

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\RestoArea;
 use App\Tables;
 use Illuminate\Http\Request;
+use Akaunting\Module\Facade as Module;
 
 class TablesController extends Controller
 {
@@ -64,6 +65,14 @@ class TablesController extends Controller
     {
         $this->authChecker();
 
+        //If we have the Floor Manager, we should use FlooPlan
+        if(Module::has('floorplan')){
+            if(!isset($_GET['do_not_redirect'])){
+                return redirect(route('admin.restaurant.restoareas.index'));
+            }
+            
+        }
+
         return view($this->view_path.'index', ['setup' => [
             'title'=>__('crud.item_managment', ['item'=>__($this->titlePlural)]),
             'action_link'=>route($this->webroute_path.'create'),
@@ -75,6 +84,7 @@ class TablesController extends Controller
             'webroute_path'=>$this->webroute_path,
             'fields'=>$this->getFields(),
             'parameter_name'=>$this->parameter_name,
+            'hasQR'=>true,
         ]]);
     }
 
@@ -189,8 +199,6 @@ class TablesController extends Controller
         $this->authChecker();
         $item = $this->provider::findOrFail($id);
         $item->delete();
-
-        //TODO -- Delete customers from this table
         return redirect()->route($this->webroute_path.'index')->withStatus(__('crud.item_has_been_removed', ['item'=>__($this->title)]));
     }
 }

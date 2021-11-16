@@ -144,7 +144,12 @@
 
                                                 }
 
-                                                if(config('app.isqrsaas')&&!config('settings.is_whatsapp_ordering_mode')){
+                                                if(config('settings.is_pos_cloud_mode')){
+                                                    array_splice($images, 1, 0, [['name'=>'site_logo_dark','label'=>__('Site Logo Dark'),'value'=>config('global.site_logo_dark'),'style'=>'width: 200px;']] );
+                                                    array_push($images,['help'=>"",'name'=>'poshomehero','label'=>__('Hero image'),'value'=>'/soft/img/poshero.jpeg','style'=>'width: 200px; height: 120px;']);
+                                                }
+
+                                                if(config('app.isqrsaas')&&!(config('settings.is_whatsapp_ordering_mode')||config('settings.is_pos_cloud_mode'))){
                                                     array_splice($images, 1, 0, [['name'=>'site_logo_dark','label'=>__('Site Logo Dark'),'value'=>config('global.site_logo_dark'),'style'=>'width: 200px;']] );
                                                   
 

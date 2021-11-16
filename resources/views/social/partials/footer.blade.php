@@ -15,20 +15,20 @@
               <span class="btn-inner--icon"><i class="fa fa-twitter"></i></span>
             </button>-->
             @if(config('global.facebook'))
-            <button target="_blank" href="{{ config('global.facebook') }}" rel="nofollow"
+            <a target="_blank" href="{{ config('global.facebook') }}" rel="nofollow"
               class="btn-icon-only rounded-circle btn btn-facebook" data-toggle="tooltip" data-original-title="Like us">
               <span class="btn-inner--icon"><i class="fab fa-facebook"></i></span>
-            </button>
+            </a>
             @endif
             <!--<button target="_blank" href="#" rel="nofollow"
               class="btn-icon-only rounded-circle btn btn-youtube" data-toggle="tooltip" data-original-title="Like us">
               <span class="btn-inner--icon"><i class="fab fa-youtube"></i></span>
             </button>-->
             @if(config('global.instagram'))
-            <button target="_blank" href="{{ config('global.instagram') }}" rel="nofollow"
+            <a target="_blank" href="{{ config('global.instagram') }}" rel="nofollow"
               class="btn-icon-only rounded-circle btn btn-instagram" data-toggle="tooltip" data-original-title="Like us">
               <span class="btn-inner--icon"><i class="fab fa-instagram"></i></span>
-            </button>
+            </a>
             @endif
           </div>
         </div>

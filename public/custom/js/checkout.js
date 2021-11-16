@@ -1,16 +1,75 @@
 "use strict";
-console.log("Checkout JS includeded");
+
 window.onload?window.onload():console.log("No other windowonload foound");
 window.onload = function () {
     checkPrivacyPolicy();
     initAddress();
     initCOD();
-    //getUserAddresses();
+    disableFunctions();
 
     if(ENABLE_STRIPE){
         initStripePayment();
     }
 }
+var disableFunctions=function(){
+    if(SYSTEM_IS_WP=="1"){
+       
+        disableFunctionsWP();
+    }
+    if(SYSTEM_IS_QR=="1"){
+        
+        disableFunctionsQR();
+    }
+    
+}
+var disableFunctionsWP=function(){
+    var DISABLE_DELIVERY=(RESTORANT.can_deliver == 0);
+    var DISABLE_PICKUP=(RESTORANT.can_pickup == 0);
+    if(DISABLE_DELIVERY){
+        $('input:radio[name=deliveryType][value=delivery]').attr('disabled', true);
+    }
+    if(DISABLE_PICKUP){
+        $('input:radio[name=deliveryType][value=pickup]').attr('disabled', true);
+    }
+    if(DISABLE_DELIVERY||DISABLE_PICKUP){
+        $("input:radio[name=deliveryType]:not(:disabled):first").attr('checked', true);
+        orderTypeSwither($('input[name="deliveryType"]:checked').val());
+    }
+}
+var disableFunctionsQR=function(){
+    
+    var DISABLE_DELIVERY=(RESTORANT.can_deliver == 0);
+    var DISABLE_PICKUP=(RESTORANT.can_pickup == 0);
+    var DISABLE_DINEIN=false;
+
+
+    //dineType
+    if(DISABLE_DELIVERY){
+      $('input:radio[name=dineType][value=delivery]').attr('disabled', true);
+    }
+    if(DISABLE_PICKUP){
+      $('input:radio[name=dineType][value=takeaway]').attr('disabled', true);
+    }
+    if(DISABLE_DINEIN){
+      $('input:radio[name=dineType][value=dinein]').attr('disabled', true);
+    }
+    if(DISABLE_DELIVERY||DISABLE_PICKUP||DISABLE_DINEIN){
+        $("input:radio[name=dineType]:not(:disabled):first").attr('checked', true);
+        //alert($('input[name="dineType"]:checked').val());
+        $('.delTimeTS').hide();
+        $('.picTimeTS').show();
+        dineTypeSwitch($('input[name="dineType"]:checked').val());
+        //$("input:radio[name=dineType]").trigger("change");
+    }
+
+  
+   
+   // $("input:radio[name=deliveryType]:not(:disabled):first").attr('checked', true);
+
+  
+    
+    //$("input:radio[name=deliveryType]").trigger("change");
+  }
 
 var checkPrivacyPolicy = function(){
     if (!$('#privacypolicy').is(':checked')) {
@@ -39,7 +98,6 @@ var validateAddressInArea = function(positions, area){
 
     if(area != null){
         Object.keys(positions).map(function(key, index) {
-            //alert("OK")
             setTimeout(function() {
                 var belongsToArea = google.maps.geometry.poly.containsLocation(new google.maps.LatLng(positions[key].lat, positions[key].lng), delivery_area);
 
@@ -60,7 +118,6 @@ var validateOrderFormSubmit=function(){
 
     //If deliverty, we need to have selected address
     if(deliveryMethod=="delivery"){
-        //console.log($("#addressID").val())
         if ($("#addressID").val()) {
             return true;
         }else{
@@ -73,15 +130,15 @@ var validateOrderFormSubmit=function(){
 }
 
 var initCOD=function(){
-    console.log("Initialize COD");
+    
      // Handle form submission  - for card.
      var form = document.getElementById('order-form');
      form.addEventListener('submit', async function(event) {
          event.preventDefault();
-         console.log('prevented');
+         
          //IF delivery - we need to have selected address
          if(validateOrderFormSubmit()){
-            console.log('Form valid');
+            
             form.submit();
          }
     });
@@ -94,7 +151,7 @@ var initCOD=function(){
  */
 var initStripePayment=function(){
 
-    console.log("Payment initialzing");
+    
 
     //On select payment method
     $('input:radio[name="paymentType"]').change(
@@ -207,6 +264,14 @@ var initStripePayment=function(){
 
         // Submit the form
         form.submit();
+
+        //Disable the field
+        $('#stripeSend').hide();
+        $('#indicatorStripe').show();
+        setTimeout(function(){ 
+          $('#stripeSend').show(); 
+          $('#indicatorStripe').hide();
+        }, 10000);
     }
 }
 
@@ -216,9 +281,9 @@ var initStripePayment=function(){
  *
  */
 var initAddress=function(){
-    console.log("Address initialzing");
+    
 
-    var start = "https://cdn1.iconfinder.com/data/icons/Map-Markers-Icons-Demo-PNG/48/Map-Marker-Ball-Pink.png"
+    var start = "/images/pin.png"
     var map = null;
     var markerData = null;
     var marker = null;
@@ -234,7 +299,7 @@ var initAddress=function(){
         $("#new_address_checkout_holder").hide();
         var place_id = $("#new_address_checkout option:selected").val();
         var place_name = $("#new_address_checkout option:selected").text();
-        console.log("Selected "+place_id);
+        
 
         $("#address").show();
         $("#address").val(place_name);
@@ -326,11 +391,9 @@ var initAddress=function(){
                 },
                 success:function(response){
                     if(response.status){
-                        //location.replace(response.success_url);
                         window.location.reload();
                     }
                 }, error: function (response) {
-                    //return callback(false, response.responseJSON.errMsg);
                 }
             })
         }
@@ -360,7 +423,6 @@ function getPlaceDetails(place_id, callback){
                 return callback(true, response.result)
             }
         }, error: function (response) {
-            //return callback(false, response.responseJSON.errMsg);
         }
     })
 }

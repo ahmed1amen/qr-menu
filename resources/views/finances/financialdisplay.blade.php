@@ -60,19 +60,19 @@
         @money( $order->delivery_price, config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
     <td class="table-web">
-        @money( $order->order_price-($order->fee_value+$order->static_fee), config('settings.cashier_currency'),config('settings.do_convertion'))
+        @money( $order->order_price_with_discount-($order->fee_value+$order->static_fee), config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
     <td class="table-web">
         @money( $order->vatvalue, config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
     <td class="table-web">
-        @money( $order->order_price-($order->fee_value+$order->static_fee)-$order->vatvalue, config('settings.cashier_currency'),config('settings.do_convertion'))
+        @money( $order->order_price_with_discount-($order->fee_value+$order->static_fee)-$order->vatvalue, config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
 
     
    
     <td class="table-web">
-        @money( $order->order_price+$order->delivery_price, config('settings.cashier_currency'),config('settings.do_convertion'))
+        @money( $order->order_price_with_discount+$order->delivery_price, config('settings.cashier_currency'),config('settings.do_convertion'))
     </td>
     
     

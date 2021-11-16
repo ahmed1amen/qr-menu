@@ -15,10 +15,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(UsersTableSeeder::class);
         $this->call(RolesTableSeeder::class);
-        $this->call(StatusTableSeeder::class);
+        
+        if(!config('settings.makePureSaaS',false)){
+            $this->call(StatusTableSeeder::class);
+        }
+       
         $this->call(PagesSeeder::class);
 
-        if (config('settings.demo_data')) {
+        if (config('settings.demo_data')&&!config('settings.makePureSaaS',false)) {
             //The demo seader
             $this->call(DemoSeeder::class);
         }

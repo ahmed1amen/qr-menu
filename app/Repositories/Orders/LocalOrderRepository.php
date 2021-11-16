@@ -8,6 +8,7 @@
 
 namespace App\Repositories\Orders;
 
+use App\Models\SimpleDelivery;
 use Illuminate\Support\Facades\Validator;
 use Cart;
 use Illuminate\Support\Facades\Cookie;
@@ -37,7 +38,7 @@ class LocalOrderRepository extends BaseOrderRepository implements OrderTypeInter
         $this->setTimeSlot();
 
         //From parent - check if order is ok - min price. -- Only for pickup - dine in should not have minimum
-        if($this->request->delivery_method=="pickup"){
+        if($this->request->delivery_method!="dinein"){
             $resultFromValidateOrder=$this->validateOrder();
             if($resultFromValidateOrder->fails()){return $resultFromValidateOrder;}
         }
@@ -72,7 +73,6 @@ class LocalOrderRepository extends BaseOrderRepository implements OrderTypeInter
             $this->order->status()->attach(1, ['user_id'=>$this->vendor->user->id, 'comment'=>'Local order']);
 
             //Set automatically approved by admin - since it it qr
-            //$this->order->status()->attach(2, ['user_id'=>1, 'comment'=>__('Automatically approved by admin')]);
         }
         
         
@@ -97,7 +97,6 @@ class LocalOrderRepository extends BaseOrderRepository implements OrderTypeInter
                 //We have payment redirect
 
                 return redirect()->route('order.success', ['order' => $this->order,'redirectToPayment'=>true])->withCookie(cookie('orders', $this->listOfOrders, 360));
-                //return redirect($this->paymentRedirect);
             }
         }else{
             //There was some error, return back to the order page

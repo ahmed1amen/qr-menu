@@ -11,7 +11,7 @@ class Variants extends Model
 {
     use SoftDeletes;
     protected $table = 'variants';
-    protected $fillable = ['price', 'item_id', 'options'];
+    protected $fillable = ['price', 'item_id', 'options','is_system'];
 
     public function item()
     {

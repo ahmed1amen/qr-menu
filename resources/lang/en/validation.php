@@ -146,6 +146,9 @@ return [
         'paypal_payment_error_action'=>[
             'required'=>'The payment attempt failed because additional action is required before it can be completed'
         ],
+        'general_payment_error_action'=>[
+            'required'=>'The payment attempt failed. If you are system administrator, please check the issue in the payment provider.'
+        ],
         'link_payment_error_action'=>[
             'required'=>'Link based payment method not found'
         ],

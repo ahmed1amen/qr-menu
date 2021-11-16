@@ -28,6 +28,10 @@ use App\Models\Features;
 use App\Models\Testimonials;
 use App\Models\Process;
 use Akaunting\Module\Facade as Module;
+use App\Models\Allergens;
+use App\Models\Config;
+use DateTime;
+use Spatie\OpeningHours\Exceptions\MaximumLimitExceeded;
 
 class FrontEndController extends Controller
 {
@@ -42,6 +46,44 @@ class FrontEndController extends Controller
         }
 
         return $subdomain;
+    }
+
+    private function customDomainMode(){
+        //1 - Make sure the module is installed
+        if(!in_array("domain", config('global.modules',[]))){
+            return "";
+        }
+
+        //2 - Extract the domain
+        $domain = request()->getHost();
+
+        
+        //3 - Make sure, this is no the project domain itself,
+        if (strpos( config('app.url'),$domain) !== false) {
+            return "";
+        }
+        
+        //4 - The extracted domain is in the list of custom values
+        $theConfig=Config::where('value',$domain)->first();
+        if($theConfig){
+            //5 - Return the company subdomain if company is active
+            $vendor_id=$theConfig->model_id;
+ 
+            $vendor=Restorant::where('id',$vendor_id)->first();
+            if($vendor){
+                return $vendor->subdomain;
+            }else{
+                return "";
+            }
+            
+        }else{
+            //By default return no domain
+            return "";
+        }
+
+       
+
+
     }
 
     /**
@@ -127,11 +169,32 @@ class FrontEndController extends Controller
             return $this->subdomainMode();
         }
 
-        //3. QR Mode ( WhatsApp )
+        //2a. Custom domain mode
+        $customDomain=$this->customDomainMode();
+        if($customDomain!="") {
+            return $this->restorant($customDomain);
+        }
+
+        //3. QR Mode ( WhatsApp  or POS ) - here we have landing switch
         if (config('app.isqrsaas')) {
+            if(config('settings.landing_to_use')!="system"){
+                if(config('settings.landing_to_use')=="whatsapp"){
+                    return $this->whatsappMode();
+                }else if(config('settings.landing_to_use')=="pos"){
+                    return $this->posMode();
+                }else {
+                    return $this->qrsaasMode();
+                }
+            }
             if(config('settings.is_whatsapp_ordering_mode')){
                 //WhatsApp Mode
                 return $this->whatsappMode();
+            }else if(config('settings.is_pos_cloud_mode')){
+                //POS Cloud Mode
+                return $this->posMode();
+            }else if(config('settings.is_agris_mode')){
+                //Agris Mode
+                return $this->agrisMode();
             }else{
                 //Default QR
                 return $this->qrsaasMode();
@@ -167,12 +230,19 @@ class FrontEndController extends Controller
         if ($subDomain) {
             $restorant = Restorant::whereRaw('REPLACE(subdomain, "-", "") = ?', [str_replace("-","",$subDomain)])->get();
             if (count($restorant) != 1) {
-                return view('restorants.alertdomain', ['subdomain' =>$subDomain]);
+                //When Subdomain mode is disabled, show the error
+                if(!config('settings.wildcard_domain_ready')){
+                    return view('restorants.alertdomain', ['subdomain' =>$subDomain]);
+                }else{
+                    abort(404);
+                }
+               
             }
 
             return $this->restorant($subDomain);
         }
     }
+    
 
     
 
@@ -186,10 +256,12 @@ class FrontEndController extends Controller
             return redirect()->route('login');
         } else {
             //Normal, with landing
-            $plans = Plans::get()->toArray();
+            $plans = config('settings.forceUserToPay',false)?Plans::where('id','!=',intval(config('settings.free_pricing_id')))->get()->toArray():Plans::get()->toArray();
+            
+            
             $colCounter = [4, 12, 6, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
 
-            $availableLanguagesENV = ENV('FRONT_LANGUAGES', 'EN,English,IT,Italian,FR,French,DE,German,ES,Spanish,RU,Russian,PT,Portuguese,TR,Turkish');
+            $availableLanguagesENV = config('settings.front_languages');
             $exploded = explode(',', $availableLanguagesENV);
             $availableLanguages = [];
             for ($i = 0; $i < count($exploded); $i += 2) {
@@ -234,6 +306,8 @@ class FrontEndController extends Controller
                     'image'=>$images[$i],
                 ]);
             }
+
+            $featured_vendors=Restorant::where('active',1)->where('is_featured',0)->get()->shuffle();
            
 
             $response = new \Illuminate\Http\Response(view('qrsaas.'.config('settings.qr_landing'), [
@@ -243,6 +317,7 @@ class FrontEndController extends Controller
                 'availableLanguages'=>$availableLanguages,
                 'locale'=>$locale,
                 'pages'=>Pages::where('showAsLink', 1)->get(),
+                'featured_vendors'=>$featured_vendors
             ]));
 
             $response->withCookie(cookie('lang', $locale, 120));
@@ -286,10 +361,10 @@ class FrontEndController extends Controller
             return redirect()->route('login');
         } else {
             //Normal, with landing
-            $plans = Plans::get()->toArray();
+            $plans = config('settings.forceUserToPay',false)?Plans::where('id','!=',intval(config('settings.free_pricing_id')))->get()->toArray():Plans::get()->toArray();
             $colCounter = [12, 6, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
 
-            $availableLanguagesENV = ENV('FRONT_LANGUAGES', 'EN,English,IT,Italian,FR,French,DE,German,ES,Spanish,RU,Russian,PT,Portuguese,TR,Turkish');
+            $availableLanguagesENV = config('settings.front_languages');
             $exploded = explode(',', $availableLanguagesENV);
             $availableLanguages = [];
             for ($i = 0; $i < count($exploded); $i += 2) {
@@ -314,7 +389,71 @@ class FrontEndController extends Controller
             $testimonials = Testimonials::where('post_type', 'testimonial')->get();
             $processes = Process::where('post_type', 'process')->get();
 
+            $featured_vendors=Restorant::where('active',1)->where('is_featured',0)->get()->shuffle();
+            $demoLink="#";
+            $demoVendor=Restorant::where('subdomain',config('settings.demo_restaurant_slug'))->first();
+            if($demoVendor){
+                $demoLink=$demoVendor->getLinkAttribute();
+            }
+
             $response = new \Illuminate\Http\Response(view('social.home', [
+                'col' => $colCounter[count($plans)-1],
+                'plans' => $plans,
+                'availableLanguages' => $availableLanguages,
+                'demoLink'=>$demoLink,
+                'locale' => $locale,
+                'pages' => Pages::where('showAsLink', 1)->get(),
+                'features' => $features,
+                'testimonials' => $testimonials,
+                'processes' => $processes,
+                'featured_vendors'=>$featured_vendors
+            ]));
+
+            $response->withCookie(cookie('lang', $locale, 120));
+            App::setLocale(strtolower($locale));
+
+            return $response;
+        }
+    }
+
+    /**
+     * 5. POS Mode.
+     */
+    public function posMode(){
+        if (config('settings.disable_landing')) {
+            //With disabled landing
+            return redirect()->route('login');
+        } else {
+            //Normal, with landing
+            $plans = config('settings.forceUserToPay',false)?Plans::where('id','!=',intval(config('settings.free_pricing_id')))->get()->toArray():Plans::get()->toArray();
+            $colCounter = [12, 6, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+
+            $availableLanguagesENV = config('settings.front_languages');
+            $exploded = explode(',', $availableLanguagesENV);
+            $availableLanguages = [];
+            for ($i = 0; $i < count($exploded); $i += 2) {
+                $availableLanguages[$exploded[$i]] = $exploded[$i + 1];
+            }
+
+            $locale = Cookie::get('lang') ? Cookie::get('lang') : config('settings.app_locale');
+            $route = Route::current();
+            $name = Route::currentRouteName();
+            $query = 'lang.';
+            if (substr($name, 0, strlen($query)) === $query) {
+                //this is language route
+                $exploded = explode('.', $name);
+                $lang = strtoupper($exploded[1]);
+                $locale = $lang;
+            }
+            App::setLocale(strtolower($locale));
+            session(['applocale_change' => strtolower($locale)]);
+
+            //Landing page content
+            $features = Features::where('post_type', 'feature')->get();
+            $testimonials = Testimonials::where('post_type', 'testimonial')->get();
+            $processes = Process::where('post_type', 'process')->get();
+
+            $response = new \Illuminate\Http\Response(view('poslanding.home', [
                 'col' => $colCounter[count($plans)-1],
                 'plans' => $plans,
                 'availableLanguages' => $availableLanguages,
@@ -331,6 +470,65 @@ class FrontEndController extends Controller
             return $response;
         }
     }
+
+     /**
+     * 6. Agris Mode.
+     */
+    public function agrisMode(){
+        if (config('settings.disable_landing')) {
+            //With disabled landing
+            return redirect()->route('login');
+        } else {
+            //Normal, with landing
+            $plans = config('settings.forceUserToPay',false)?Plans::where('id','!=',intval(config('settings.free_pricing_id')))->get()->toArray():Plans::get()->toArray();
+            $colCounter = [12, 6, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+
+            $availableLanguagesENV = config('settings.front_languages');
+            $exploded = explode(',', $availableLanguagesENV);
+            $availableLanguages = [];
+            for ($i = 0; $i < count($exploded); $i += 2) {
+                $availableLanguages[$exploded[$i]] = $exploded[$i + 1];
+            }
+
+            $locale = Cookie::get('lang') ? Cookie::get('lang') : config('settings.app_locale');
+            $route = Route::current();
+            $name = Route::currentRouteName();
+            $query = 'lang.';
+            if (substr($name, 0, strlen($query)) === $query) {
+                //this is language route
+                $exploded = explode('.', $name);
+                $lang = strtoupper($exploded[1]);
+                $locale = $lang;
+            }
+            App::setLocale(strtolower($locale));
+            session(['applocale_change' => strtolower($locale)]);
+
+            //Landing page content
+            $features = Features::where('post_type', 'feature')->get();
+            $testimonials = Testimonials::where('post_type', 'testimonial')->get();
+            $processes = Process::where('post_type', 'process')->get();
+
+            $response = new \Illuminate\Http\Response(view('agrislanding.home', [
+                'col' => $colCounter[count($plans)-1],
+                'plans' => $plans,
+                'availableLanguages' => $availableLanguages,
+                'locale' => $locale,
+                'pages' => Pages::where('showAsLink', 1)->get(),
+                'featured_vendors'=>Restorant::where('active',1)->where('is_featured',0)->get()->shuffle(),
+                'features' => $features,
+                'testimonials' => $testimonials,
+                'processes' => $processes
+            ]));
+
+            $response->withCookie(cookie('lang', $locale, 120));
+            App::setLocale(strtolower($locale));
+
+            return $response;
+        }
+    }
+
+
+    
 
     /**
      * Show stores.
@@ -431,8 +629,6 @@ class FrontEndController extends Controller
                     }
                     $polygon = json_decode(json_encode($restorant->radius));
                     $numItems = count($restorant->radius);
-                    //dd($restorant->radius);
-                    //dd($numItems);
 
                     //If disabled deliver - no delivery area
 
@@ -478,9 +674,7 @@ class FrontEndController extends Controller
                 }
 
                 $allReastaurantsTitle = __('All restaurants delivering to your address');
-                /*if(config('settings.disable_deliver')){
-                    $allReastaurantsTitle=__('All restaurants');
-                }*/
+                
                 if (! $hasRestorantsWithDelivery) {
                     $allReastaurantsTitle = __('All restaurants');
                 }
@@ -546,6 +740,7 @@ class FrontEndController extends Controller
 
     public function restorant($alias)
     {
+       
 
         //Do we have impressum app
         $doWeHaveImpressumApp=Module::has('impressum');
@@ -557,11 +752,20 @@ class FrontEndController extends Controller
         }
         $restorant = Restorant::whereRaw('REPLACE(subdomain, "-", "") = ?', [str_replace("-","",$alias)])->first();
 
-        //Set config based on restaurant
-        config(['app.timezone' => $restorant->getConfig('time_zone',config('app.timezone'))]);
+        //Do we have google translate app
+        $doWeHaveGoogleTranslateApp=Module::has('googletranslate')&&$restorant->getConfig('gt_enable',false);
 
-        
-        if ($restorant->active == 1) {
+               
+        if ($restorant && $restorant->active == 1) {
+
+            if(config('settings.is_pos_cloud_mode')){
+                return redirect(route('admin.restaurants.edit',$restorant->id));
+            }
+    
+            //Set config based on restaurant
+            config(['app.timezone' => $restorant->getConfig('time_zone',config('app.timezone'))]);
+    
+    
 
             if(isset($_GET['pay'])){
                 //This is a payment link
@@ -573,13 +777,8 @@ class FrontEndController extends Controller
 
             $restorant->increment('views');
 
-            $canDoOrdering = true;
-            if (config('app.isqrsaas')) {
-                //In QRsaas with plans, we need to check if they can add new items.
-                $currentPlan = Plans::findOrFail($restorant->user->mplanid());
-                $canDoOrdering = $currentPlan->enable_ordering == 1;
-            }
-
+            $canDoOrdering = $restorant->getPlanAttribute()['canMakeNewOrder'];
+            
             //ratings usernames
             $usernames = [];
             if ($restorant && $restorant->ratings) {
@@ -618,25 +817,71 @@ class FrontEndController extends Controller
            // dd(Categories::where('restorant_id',$restorant->id)->ordered()->get());
 
            $businessHours=$restorant->getBusinessHours();
-           $now = new \DateTime('now');
+           
+           $tz= $restorant->getConfig('time_zone',config('app.timezone'));
+           $now = new \DateTime('now',new \DateTimeZone($tz));
 
            $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
            $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
+           $formatter->setTimeZone($tz);
 
-            return view('restorants.show', [
+           $menuTemplate=config('settings.front_end_template','defaulttemplate');
+           $viewFile='restorants.show';
+           if($menuTemplate!='defaulttemplate'){
+            $viewFile=config('settings.front_end_template','defaulttemplate')."::show";
+           }
+          
+
+           $wh=$businessHours->forWeek();
+           
+
+           $canDoOrdering=$canDoOrdering&&$businessHours->isOpen();
+           if ($restorant->getConfig('disable_ordering', false)){
+            $canDoOrdering=false;
+           }
+           
+           $openingTime=null;
+           $closingTime=null;
+           try {
+            $openingTime=$businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null;
+            $closingTime=$businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null;
+           } catch (MaximumLimitExceeded $th) {
+               //throw $th;
+           }
+
+
+
+           $viewData=[
+                'wh'=>$wh,
+                'allergens'=>in_array("allergens", config('global.modules',[]))?Allergens::where('post_type','allergen')->get():[],
+                'currentDay'=>strtolower((new DateTime())->format('l')),
                 'doWeHaveImpressumApp'=>$doWeHaveImpressumApp,
                 'restorant' => $restorant,
-                'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
-                'closingTime' => $businessHours->isOpen()?$formatter->format($businessHours->nextClose($now)):null,
+                'openingTime' => $openingTime,
+                'closingTime' => $closingTime,
                 'usernames' => $usernames,
                 'canDoOrdering'=>$canDoOrdering&&$businessHours->isOpen(),
                 'currentLanguage'=>$currentEnvLanguage,
+                'showGoogleTranslate'=>$doWeHaveGoogleTranslateApp,
+                'showAllGTLanguages'=>$restorant->getConfig('gt_all',true),
+                'showGTLanguages'=>$restorant->getConfig('gt_list',""),
                 'showLanguagesSelector'=>env('ENABLE_MILTILANGUAGE_MENUS', false) && $restorant->localmenus()->count() > 1,
                 'hasGuestOrders'=>count($previousOrderArray) > 0,
                 'fields'=>[['class'=>'col-12', 'classselect'=>'noselecttwo', 'ftype'=>'select', 'name'=>'Table', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true]],
-            ]);
+           ];
+           
+
+           $response = new \Illuminate\Http\Response(view($viewFile,$viewData));
+
+           if(isset($_GET['tid'])){
+                $response->withCookie(cookie('tid', $_GET['tid'], 360));
+           }else{
+                $response->withCookie(cookie('tid',"", 360));
+           }
+
+            return $response;
         } else {
-            return redirect()->back()->withError(__('The selected restaurant is not active at this moment!'));
+            return abort(404,__('The selected restaurant is not active at this moment!'));
         }
     }
 

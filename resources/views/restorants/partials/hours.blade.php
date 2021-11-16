@@ -66,7 +66,10 @@
                         @endforeach
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>
+                        @if(count($shifts)>1)
+                            <a class="btn btn-danger mt-4" href="{{ route('restaurant.workinghoursremove',$shiftId) }}" style="color: #fff">{{ __('Delete') }}</a>
+                        @endif
+                        <button type="submit" class="btn btn-success mt-4">{{ __('Save') }}</button>   
                     </div>
                 </form>
             </div>

@@ -23,7 +23,7 @@
       </div>
       <br />
       <a href="{{ route('newrestaurant.register') }}" type="button" class="btn btn-outline-success">
-        {{ __('whatsapp.pricing_button') . " "}} {{ $plan['name'] }}
+        {{ __('whatsapp.start_now')}}
       </a>
     </div>
   </div>

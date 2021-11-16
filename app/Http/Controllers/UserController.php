@@ -20,6 +20,7 @@ class UserController extends Controller
      */
     public function index(User $model)
     {
+        $this->adminOnly();
         return view('users.index', ['users' => $model->paginate(15)]);
     }
 
@@ -30,6 +31,7 @@ class UserController extends Controller
      */
     public function create()
     {
+        $this->adminOnly();
         return view('users.create');
     }
 
@@ -55,6 +57,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $this->adminOnly();
         return view('users.edit', compact('user'));
     }
 
@@ -83,6 +86,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->adminOnly();
         if ($user->hasRole('owner')) {
             $data = Restorant::with('orders.items')->with('orders.status')->with('categories.items.variants.extras')->with('categories.items.extras')->with('categories.items.options')->where('id', $user->restorant->id)->get()->toArray();
 

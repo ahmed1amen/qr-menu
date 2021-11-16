@@ -9,8 +9,24 @@ var js = {
       js.modal();
       
     },
+    
     cookieDialog(){
       setTimeout(function(){$('#allow_cookies').fadeIn(400);}, 3000);
+    },
+    trans(originalKey, replace = {})
+    {
+    
+        key="custom."+originalKey;
+        let translation = key.split('.').reduce((t, i) => t&&t[i] || null, window.translations);
+
+        for (var placeholder in replace) {
+            translation = translation.replace(`:${placeholder}`, replace[placeholder]);
+        }
+        if(translation==null){
+          return originalKey;
+        }
+
+        return translation;
     },
     initDriverMap: function(){
       alert("init driver")
@@ -79,7 +95,7 @@ var js = {
        */
 
 
-      console.log("Payment initialzing");
+      
 
       // Create a Stripe client.
       var stripe = Stripe(STRIPE_KEY);
@@ -154,7 +170,6 @@ var js = {
     },
     modal: function (){
       $('.modal-content').resizable({
-        //alsoResize: ".modal-dialog",
         minHeight: 300,
         minWidth: 300
       });

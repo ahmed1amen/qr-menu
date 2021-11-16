@@ -24,9 +24,11 @@
       </div>
   </div>
   <div class="text-center" id="totalSubmitStripe">
+    <i id="indicatorStripe" style="display: none" class="fa fa-spinner fa-spin"></i>
     <button
         v-if="totalPrice"
         type="submit"
+        id="stripeSend"
         class="btn btn-success mt-4 paymentbutton"
         >{{ __('Place an order') }}</button>
   </div>

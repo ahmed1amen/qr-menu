@@ -8,18 +8,24 @@
 
     <label class="form-control-label">{{ __($name) }}</label><br />
 
-    <select class="form-control form-control-alternative   @isset($classselect) {{$classselect}} @endisset"  name="{{ $id }}" id="{{  $id }}">
+    <select @isset($disabled) {{ "disabled" }} @endisset  class="form-control form-control-alternative   @isset($classselect) {{$classselect}} @endisset"  name="{{ $id }}" id="{{  $id }}">
         <option disabled selected value> {{ __('Select')." ".__($name)}} </option>
         @foreach ($data as $key => $item)
-            @if (old($id)&&old($id).""==$key."")
-                <option  selected value="{{ $key }}">{{ __($item) }}</option>
-            @elseif (isset($value)&&strtoupper($value."")==strtoupper($key.""))
-                <option  selected value="{{ $key }}">{{ __($item) }}</option>
-            @elseif (app('request')->input($id)&&strtoupper(app('request')->input($id)."")==strtoupper($key.""))
-                <option  selected value="{{ $key }}">{{ __($item) }}</option>
+
+            @if (is_array(__($item)))
+                <option value="{{ $key }}">{{ $item }}</option>
             @else
-                <option value="{{ $key }}">{{ __($item) }}</option>
+                @if (old($id)&&old($id).""==$key."")
+                    <option  selected value="{{ $key }}">{{ __($item) }}</option>
+                @elseif (isset($value)&&trim(strtoupper($value.""))==trim(strtoupper($key."")))
+                    <option  selected value="{{ $key }}">{{ __($item) }}</option>
+                @elseif (app('request')->input($id)&&strtoupper(app('request')->input($id)."")==strtoupper($key.""))
+                    <option  selected value="{{ $key }}">{{ __($item) }}</option>
+                @else
+                    <option value="{{ $key }}">{{ __($item) }}</option>
+                @endif
             @endif
+            
         @endforeach
     </select>
 

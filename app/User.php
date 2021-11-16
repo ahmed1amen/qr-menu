@@ -12,6 +12,8 @@ use Laravel\Cashier\Billable;
 use Spatie\Permission\Traits\HasRoles;
 use Twilio\Rest\Client;
 use App\Traits\HasConfig;
+use Akaunting\Module\Facade as Module;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -20,6 +22,7 @@ class User extends Authenticatable
     use HasRoles;
     use Billable;
     use HasConfig;
+    use SoftDeletes;
 
     protected $modelName="App\User";
 
@@ -29,7 +32,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'phone', 'api_token', 'birth_date', 'working', 'lat', 'lng', 'numorders', 'rejectedorders',
+        'name', 'email', 'password', 'phone', 'api_token', 'birth_date', 'working', 'lat', 'lng', 'numorders', 'rejectedorders','restaurant_id',
     ];
 
     /**
@@ -60,10 +63,44 @@ class User extends Authenticatable
         }
     }
 
+    public function getExtraMenus(){
+        $menus=[];
+        if($this->hasRole('admin')){
+            foreach (Module::all() as $key => $module) {
+                if(is_array($module->get('adminmenus'))){
+                    foreach ($module->get('adminmenus') as $key => $menu) {
+                       array_push($menus,$menu);
+                    }
+                }
+            }
+        }else if($this->hasRole('owner')){
+            foreach (Module::all() as $key => $module) {
+                if(is_array($module->get('ownermenus'))){
+                    foreach ($module->get('ownermenus') as $key => $menu) {
+                       array_push($menus,$menu);
+                    }
+                }
+            }
+        }
+        return $menus;
+    }
+
     public function restorant()
     {
         return $this->hasOne(\App\Restorant::class);
     }
+
+    public function restaurant()
+    {
+        return $this->hasOne(\App\Restorant::class,'id','restaurant_id');
+    }
+
+    public function restaurants()
+    {
+        return $this->hasMany(\App\Restorant::class);
+    }
+
+    
 
     public function plan()
     {

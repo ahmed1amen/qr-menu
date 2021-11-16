@@ -14,7 +14,7 @@ $(document).ready(function() {
 
         var channel = pusher.subscribe('user.'+USER_ID);
         channel.bind('callwaiter-event', function(data) {
-            js.notify(data.msg + " " + data.table.name,"primary");
+            js.notify(data.msg + " " + data.table.restoarea.name+" "+data.table.name,"primary");
             audio.play();
         });
 

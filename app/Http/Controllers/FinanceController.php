@@ -25,7 +25,6 @@ class FinanceController extends Controller
         //Get client's orders
         if (auth()->user()->hasRole('client')) {
             $orders = $orders->where(['client_id'=>auth()->user()->id]);
-        ////Get driver's orders
         } elseif (auth()->user()->hasRole('driver')) {
             $orders = $orders->where(['driver_id'=>auth()->user()->id]);
         //Get owner's restorant orders
@@ -56,13 +55,11 @@ class FinanceController extends Controller
 
         //BY DATE FROM
         if (isset($_GET['fromDate']) && strlen($_GET['fromDate']) > 3) {
-            //$start = Carbon::parse($_GET['fromDate']);
             $orders = $orders->whereDate('created_at', '>=', $_GET['fromDate']);
         }
 
         //BY DATE TO
         if (isset($_GET['toDate']) && strlen($_GET['toDate']) > 3) {
-            //$end = Carbon::parse($_GET['toDate']);
             $orders = $orders->whereDate('created_at', '<=', $_GET['toDate']);
         }
 
@@ -102,10 +99,11 @@ class FinanceController extends Controller
                     'platform_fee'=>$order->fee_value + $order->static_fee,
                     'processor_fee'=>$order->payment_processor_fee,
                     'delivery'=>$order->delivery_price,
-                    'net_price_with_vat'=>$order->order_price,
+                    'net_price_with_vat'=>$order->order_price_with_discount,
+                    'discount'=>$order->discount,
                     'vat'=>$order->vatvalue,
-                    'net_price'=>$order->order_price - $order->vatvalue,
-                    'order_total'=>$order->delivery_price + $order->order_price,
+                    'net_price'=>$order->order_price_with_discount - $order->vatvalue,
+                    'order_total'=>$order->delivery_price + $order->order_price_with_discount,
                   ];
                 array_push($items, $item);
             }
@@ -120,16 +118,16 @@ class FinanceController extends Controller
             ['title'=>'Platform Fee', 'value'=>0, 'isMoney'=>true],
             ['title'=>'Net', 'value'=>0, 'isMoney'=>true],
 
-            ['title'=>'Processor Fee', 'value'=>0, 'isMoney'=>true],
+            ['title'=>'Processor fee', 'value'=>0, 'isMoney'=>true],
             ['title'=>'Deliveries', 'value'=>0],
             ['title'=>'Delivery income', 'value'=>0, 'isMoney'=>true],
             ['title'=>'Platform profit', 'value'=>0, 'isMoney'=>true],
         ];
         foreach ($resources['orders']->get() as $key => $order) {
             $cards[0]['value'] += 1;
-            $cards[1]['value'] += $order->delivery_price + $order->order_price;
+            $cards[1]['value'] += $order->delivery_price + $order->order_price_with_discount;
             $cards[2]['value'] += $order->fee_value + $order->static_fee;
-            $cards[3]['value'] += $order->order_price - $order->fee_value - $order->static_fee;
+            $cards[3]['value'] += $order->order_price_with_discount - $order->fee_value - $order->static_fee;
 
             $cards[4]['value'] += $order->payment_processor_fee;
             $cards[5]['value'] += $order->delivery_method.'' == '1' ? 1 : 0;
@@ -200,10 +198,11 @@ class FinanceController extends Controller
                     'platform_fee'=>$order->fee_value + $order->static_fee,
                     'processor_fee'=>$order->payment_processor_fee,
                     'delivery'=>$order->delivery_price,
-                    'net_price_with_vat'=>$order->order_price,
+                    'net_price_with_vat'=>$order->order_price_with_discount,
                     'vat'=>$order->vatvalue,
-                    'net_price'=>$order->order_price - $order->vatvalue,
-                    'order_total'=>$order->delivery_price + $order->order_price,
+                    'net_price'=>$order->order_price_with_discount - $order->vatvalue,
+                    'order_total'=>$order->delivery_price + $order->order_price_with_discount,
+                    'discount'=>$order->discount
                   ];
                 array_push($items, $item);
             }
@@ -225,12 +224,12 @@ class FinanceController extends Controller
         ];
         foreach ($resources['orders']->get() as $key => $order) {
             $cards[0]['value'] += 1;
-            $cards[1]['value'] += $order->delivery_price + $order->order_price;
+            $cards[1]['value'] += $order->delivery_price + $order->order_price_with_discount;
             $cards[2]['value'] += $order->fee_value + $order->static_fee;
-            $cards[3]['value'] += $order->order_price - $order->fee_value - $order->static_fee;
+            $cards[3]['value'] += $order->order_price_with_discount - $order->fee_value - $order->static_fee;
 
             $cards[4]['value'] += $order->vatvalue;
-            $cards[5]['value'] += $order->order_price - $order->vatvalue - $order->fee_value - $order->static_fee;
+            $cards[5]['value'] += $order->order_price_with_discount - $order->vatvalue - $order->fee_value - $order->static_fee;
             $cards[6]['value'] += $order->delivery_method.'' == '1' ? 1 : 0;
             $cards[7]['value'] += $order->delivery_price;
         }

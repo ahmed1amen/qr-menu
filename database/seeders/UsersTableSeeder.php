@@ -24,6 +24,9 @@ class UsersTableSeeder extends Seeder
             if(config('settings.is_whatsapp_ordering_mode')){
                 $logo = "/default/logo_whatsapp_dark.png";
                 $darkLogo = "/default/logo_whatsapp_white.png";
+            }else if(config('settings.is_pos_cloud_mode')){
+                $logo = "/default/logo_lionpos_dark.png";
+                $darkLogo = "/default/logo_lionpos_white.png";
             }else{
                 $logo = "/default/logo_qrzebra.png";
                 $darkLogo = "/default/logo_qrzebra_white.png";

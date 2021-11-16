@@ -62,7 +62,7 @@ class OrdersController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Order created',
+            'message' => __('Order created'),
             'id'=>$orderRepo->order->id,
             'paymentLink'=>$orderRepo->paymentRedirect
         ]);

@@ -14,26 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'debug_blacklist' => [
-        '_COOKIE' => array_keys($_COOKIE),
-        '_SERVER' => array_keys($_SERVER),
-        '_ENV' => array_keys($_ENV),
-    ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | SETUP
-    |--------------------------------------------------------------------------
-    |
-    */
-    'ignore_subdomains' => explode(',', env('IGNORE_SUBDOMAINS', 'www')),
-    'order_approve_directly' => env('APP_ORDER_APPROVE_DIRECTLY', false),
-    'allow_self_deliver' => env('APP_ALLOW_SELF_DELIVER', false),
-
-    'twilio' => [
-        'TWILIO_AUTH_TOKEN'  => env('TWILIO_AUTH_TOKEN'),
-        'TWILIO_ACCOUNT_SID' => env('TWILIO_ACCOUNT_SID'),
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -63,7 +44,26 @@ return [
     'isqrsaas' => env('APP_PROJECT_TYPE', 'ft') == 'qrsaas',
     'iswp' => env('IS_WHATSAPP_ORDERING_MODE', false),
     'isft' => env('APP_PROJECT_TYPE', 'ft') == 'ft',
+    'ispc' => env('IS_POS_CLOUD_MODE',false),
+    'isag' => env('IS_AGRIS_MODE',false),
+    'isqrexact' => env('APP_PROJECT_TYPE', 'ft') == 'qrsaas' && !( env('IS_POS_CLOUD_MODE',false) || env('IS_WHATSAPP_ORDERING_MODE', false)),
     'ordering' => env('APP_PROJECT_TYPE', 'ft') != 'qrsaas' || env('APP_PROJECT_TYPE', 'ft') == 'qrsaas' && ! env('QRSAAS_DISABLE_ODERING', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SETUP
+    |--------------------------------------------------------------------------
+    |
+    */
+    'ignore_subdomains' => explode(',', env('IGNORE_SUBDOMAINS', 'www')),
+    'order_approve_directly' => env('APP_ORDER_APPROVE_DIRECTLY', false),
+    'allow_self_deliver' => env('APP_ALLOW_SELF_DELIVER', false),
+
+    'twilio' => [
+        'TWILIO_AUTH_TOKEN'  => env('TWILIO_AUTH_TOKEN'),
+        'TWILIO_ACCOUNT_SID' => env('TWILIO_ACCOUNT_SID'),
+    ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -77,6 +77,11 @@ return [
     */
 
     'debug' => env('APP_DEBUG', false),
+    'debug_blacklist' => [
+        '_COOKIE' => array_keys($_COOKIE),
+        '_SERVER' => array_keys($_SERVER),
+        '_ENV' => array_keys($_ENV),
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -92,6 +97,7 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL', null),
+    'company_images' => env('COMPANY_IMAGES_PATH', "/uploads/restorants/"),
 
     /*
     |--------------------------------------------------------------------------
@@ -195,13 +201,13 @@ return [
         Illuminate\Redis\RedisServiceProvider::class,
         Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
         Illuminate\Session\SessionServiceProvider::class,
+        JoeDixon\Translation\TranslationServiceProvider::class,
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         Onecentlin\Adminer\ServiceProvider::class,
         Akaunting\Money\Provider::class,
         Intervention\Image\ImageServiceProvider::class,
-        JoeDixon\Translation\TranslationServiceProvider::class,
         Biscolab\ReCaptcha\ReCaptchaServiceProvider::class,
 
         /*
@@ -213,6 +219,7 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
+        App\Providers\TranslationServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,

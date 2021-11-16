@@ -6,19 +6,15 @@ use App\Plans;
 use App\User;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Exceptions\PaymentActionRequired;
+use Laravel\Cashier\Exceptions\PaymentFailure;
 
 class PlansController extends Controller
 {
-    private function adminOnly()
-    {
-        if (! auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action.');
-        }
-    }
+   
 
     public function current()
     {
-        
+
         //The curent plan -- access for owner only
         if (! auth()->user()->hasRole('owner')) {
             abort(403, 'Unauthorized action.');
@@ -27,7 +23,7 @@ class PlansController extends Controller
         $theSelectedProcessor=strtolower(config('settings.subscription_processor','stripe'));
 
 
-        if(!($theSelectedProcessor == 'stripe' || $theSelectedProcessor == 'local') ){
+        if(!($theSelectedProcessor == 'stripe' || $theSelectedProcessor == 'local')&&auth()->user()->plan_status!="set_by_admin" ){
             $className = '\Modules\\'.ucfirst($theSelectedProcessor).'Subscribe\Http\Controllers\App';
             $ref = new \ReflectionClass($className);
             $ref->newInstanceArgs()->validate(auth()->user());
@@ -38,27 +34,18 @@ class PlansController extends Controller
         $colCounter = [4, 12, 6, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
 
         $currentUserPlan = Plans::withTrashed()->find(auth()->user()->mplanid());
+        $planAttribute=auth()->user()->restorant->getPlanAttribute();
 
         $data = [
             'col'=>$colCounter[count($plans)],
             'plans'=>$plans,
-            'currentPlan'=>$currentUserPlan
+            'currentPlan'=>$currentUserPlan,
+            'planAttribute'=>$planAttribute
         ];
 
         
         if ($theSelectedProcessor == 'stripe') {
             $data['intent'] = auth()->user()->createSetupIntent();
-
-            if (auth()->user()->subscribed('main')) {
-                //Subscribed
-                //Switch the user to the free plan
-                //auth()->user()->plan_id=config('settings.free_pricing_id');
-                //auth()->user()->update();
-                //$currentUserPlan=Plans::findOrFail(auth()->user()->mplanid());
-                //$data['currentPlan']=$currentUserPlan;
-            } else {
-                //not subscribed
-            }
         }
 
         $data['subscription_processor']=$theSelectedProcessor;
@@ -102,11 +89,26 @@ class PlansController extends Controller
     public function store(Request $request)
     {
         $this->adminOnly();
+        //Validate request
+        $rules=[
+            'name'=>['required'],
+            'price'=>['numeric','required'],
+            'description'=>['required'],
+            'features'=>['required'],
+            'stripe_id'=>['sometimes'],
+            'limit_items'=>['numeric','required'],
+            'limit_orders'=>['numeric','required']
+        ];
+
+        $request->validate($rules);
+
+        
+
         $plan = new Plans;
         $plan->name = strip_tags($request->name);
         $plan->price = strip_tags($request->price);
         $plan->limit_items = strip_tags($request->limit_items);
-        $plan->limit_orders = 0;
+        
 
         if(isset($request->subscribe)){
             foreach ($request->subscribe as $key => $value) {
@@ -119,6 +121,8 @@ class PlansController extends Controller
 
         $plan->period = $request->period == 'monthly' ? 1 : 2;
         $plan->enable_ordering = $request->ordering == 'enabled' ? 1 : 2;
+
+        $plan->limit_orders = $request->ordering == 'enabled'?$request->limit_orders:0;
 
         $plan->save();
 
@@ -162,7 +166,6 @@ class PlansController extends Controller
         $plan->name = strip_tags($request->name);
         $plan->price = strip_tags($request->price);
         $plan->limit_items = strip_tags($request->limit_items);
-        $plan->limit_orders = 0;
 
         //Subscriptions plans
         if(isset($request->subscribe)){
@@ -180,6 +183,8 @@ class PlansController extends Controller
 
         $plan->period = $request->period == 'monthly' ? 1 : 2;
         $plan->enable_ordering = $request->ordering == 'enabled' ? 1 : 2;
+        $plan->limit_orders = $request->ordering == 'enabled'?$request->limit_orders:0;
+
         $plan->description = $request->description;
         $plan->features = $request->features;
 
@@ -210,7 +215,6 @@ class PlansController extends Controller
 
             return redirect()->route('plans.current')->withStatus(__('Plan update!'));
         }else{
-            //TODO - handle better when executed on mobile app
             return redirect()->route('plans.current')->withEror($request->message)->withInput();
         }
     }
@@ -229,7 +233,6 @@ class PlansController extends Controller
                     auth()->user()->subscription('main')->swap($plan_stripe_id);
                 } else {
                     //NEW Stripe 
-                    //Surround with try
                     $payment_stripe = auth()->user()->newSubscription('main', $plan_stripe_id)->create($request->stripePaymentId);
                     
                 }
@@ -238,6 +241,12 @@ class PlansController extends Controller
                 //On PaymentActionRequired - send the checkout link
                 $paymentRedirect = route('cashier.payment',[$e->payment->id, 'redirect' => route('plans.subscribe_3d_stripe',['plan'=> $plan->id,'user'=>auth()->user()->id])]);
                 return redirect($paymentRedirect);
+            }
+
+            //PaymentFailure
+            catch (PaymentFailure $e) {
+                //On Fail delete order and inform user
+                return redirect()->route('plans.current')->withError(__('Payment Failure'));
             }
         } 
 
@@ -253,6 +262,7 @@ class PlansController extends Controller
         $this->adminOnly();
         $user = User::findOrFail($request->user_id);
         $user->plan_id = $request->plan_id;
+        $user->plan_status = "set_by_admin";
         $user->update();
 
         return redirect()->route('admin.restaurants.edit', ['restaurant' => $request->restaurant_id])->withStatus(__('Plan successfully updated.'));

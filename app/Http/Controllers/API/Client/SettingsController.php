@@ -1,11 +1,28 @@
 <?php
 
 namespace App\Http\Controllers\API\Client;
+use Akaunting\Module\Facade as Module;
 
 class SettingsController
 {
     public function index()
     {
+            //Fill Payment options
+            $paymentOptions=[];
+            foreach (Module::all() as $key => $module) {
+                    //If Module is payment method, check if admin has approved usage
+                    if($module->get('isPaymentModule')){
+                        //check if admin has approved usage
+                        //if(config($module->get('alias').".enabled",false)){
+                            array_push($paymentOptions,[
+                                'name'=>__($module->get('alias')),
+                                'alias'=>$module->get('alias')
+                            ]);
+                        //}
+    
+                    }
+            }
+
             return response()->json([
                 'data' => [
                     'app_name'=>config('app.name'),
@@ -21,7 +38,8 @@ class SettingsController
                     'onesignal_android_app_id'=>config('settings.onesignal_android_app_id'),
                     'onesignal_ios_app_id'=>config('settings.onesignal_ios_app_id'),
                     'google_api_key'=>config('settings.google_maps_api_key'),
-                    'driver_percent_from_deliver'=>config('driver_percent_from_deliver',100)
+                    'driver_percent_from_deliver'=>config('driver_percent_from_deliver',100),
+                    'payment_methods'=>$paymentOptions
                 ],
                 'status' => true,
                 'errMsg' => '',

@@ -15,13 +15,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use App\Services\ConfChanger;
 use Akaunting\Module\Facade as Module;
+use App\Models\CartStorageModel;
 
 class CartController extends Controller
 {
     use Fields;
 
+    private function setSessionID($session_id){
+        Cart::session($session_id);
+    }
+
     public function add(Request $request)
     {
+        if(isset($request->session_id)){
+            $this->setSessionID($request->session_id);
+        }
+    
         $item = Items::find($request->id);
         $restID = $item->category->restorant->id;
 
@@ -43,9 +52,6 @@ class CartController extends Controller
             }
         }
 
-        //TODO - check if cart contains, if so, check if restorant is same as pervios one
-
-        // Cart::clear();
         if ($item && $canAdd) {
 
             //are there any extras
@@ -66,7 +72,6 @@ class CartController extends Controller
 
                     //For each option, find the option on the
                     $cartItemName = $item->name.' '.$variant->optionsList;
-                    //$theElement.=$value." -- ".$item->extras()->findOrFail($value)->name."  --> ". $cartItemPrice." ->- ";
                 }
             }
 
@@ -87,13 +92,18 @@ class CartController extends Controller
                 'status' => false,
                 'errMsg' => __("You can't add items from other restaurant!"),
             ]);
-            //], 401);
         }
     }
 
     public function getContent()
     {
-        //Cart::clear();
+    
+
+        //In this case, we need to use the cookies for storagee
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }
+
         return response()->json([
             'data' => Cart::getContent(),
             'total' => Cart::getSubTotal(),
@@ -102,10 +112,36 @@ class CartController extends Controller
         ]);
     }
 
+    public function getContentPOS()
+    {
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }else{
+            return response()->json([
+                'status' => false,
+                'errMsg' => 'Session is not started yet',
+            ]);
+        }
+        
+
+        $cs=CartStorageModel::where('id',$_GET['session_id']."_cart_items")->first();
+
+        return response()->json([
+            'data' => Cart::getContent(),
+            'config'=> $cs?$cs->getAllConfigs():[],
+            'id'=>$_GET['session_id'],
+            'total' => Cart::getSubTotal(),
+            'status' => true,
+            'errMsg' => '',
+        ]);
+    }
+
     public function cart()
     {
-         
         
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }
 
 
         $fieldsToRender=[];
@@ -119,7 +155,6 @@ class CartController extends Controller
 
         if(!$isEmpty){
             //Cart is not empty
-
             $restorantID = null;
             foreach (Cart::getContent() as $key => $cartItem) {
                 $restorantID = $cartItem->attributes->restorant_id;
@@ -138,8 +173,22 @@ class CartController extends Controller
 
             $enablePayments=true;
             if(config('app.isqrsaas')){
-                if($restaurant->currency!=""&&$restaurant->currency!=config('settings.cashier_currency')){
-                    //$enablePayments=false; -- DO this check only when money goes to admin 
+                
+
+                //In case, we use vendor defined Stripe, we need to check if keys are present
+                if(config('settings.stripe_useVendor')){
+                    if($restaurant->getConfig('stripe_enable')=="true"){
+                        //We have stripe
+                        config(['settings.enable_stripe' => true]);
+                        config(['settings.stripe_key' => $restaurant->getConfig('stripe_key')]);
+                        config(['settings.stripe_secret' => $restaurant->getConfig('stripe_secret')]);
+                        config(['cashier.key' => $restaurant->getConfig('stripe_key')]);
+                        config(['cashier.secret' => $restaurant->getConfig('stripe_secret')]);
+
+                    }else{
+                        //Stripe for this vendor is disabled
+                        config(['settings.enable_stripe' => false]);
+                    }
                 }
             }
 
@@ -159,7 +208,7 @@ class CartController extends Controller
             $tables = Tables::where('restaurant_id', $restaurant->id)->get();
             $tablesData = [];
             foreach ($tables as $key => $table) {
-                $tablesData[$table->id] = $table->restoarea ? $table->restoarea->name.' - '.$table->name : $table->name;
+                $tablesData[$table->id] = $table->full_name;
             }
 
 
@@ -176,11 +225,21 @@ class CartController extends Controller
             $formatter = new \IntlDateFormatter(config('app.locale'), \IntlDateFormatter::SHORT, \IntlDateFormatter::SHORT);
             $formatter->setPattern(config('settings.datetime_workinghours_display_format_new'));
         
+            //Table ID
+            $tid = Cookie::get('tid') ? Cookie::get('tid') :null;
+            if($tid==""){$tid=null;}
+            $tables=['ftype'=>'select', 'name'=>'', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true];
+            $tableName="";
+            if($tid!=null){
+                $tables['value']=$tid;
+                $tableName=Tables::findOrFail($tid)->full_name;
+            }
+
 
             $params = [
                 'enablePayments'=>$enablePayments,
                 'title' => 'Shopping Cart Checkout',
-                'tables' =>  ['ftype'=>'select', 'name'=>'', 'id'=>'table_id', 'placeholder'=>'Select table', 'data'=>$tablesData, 'required'=>true],
+                'tables' =>  $tables,
                 'restorant' => $restaurant,
                 'timeSlots' => $timeSlots,
                 'openingTime' => $businessHours->isClosed()?$formatter->format($businessHours->nextOpen($now)):null,
@@ -188,6 +247,8 @@ class CartController extends Controller
                 'addresses' => $addresses,
                 'fieldsToRender'=>$fieldsToRender,
                 'extraPayments'=>$extraPayments,
+                'tid'=>$tid,
+                'tableName'=>$tableName
             ];
 
             return view('cart')->with($params);
@@ -248,7 +309,6 @@ class CartController extends Controller
         //Working hours
         $ourDateOfWeek = date('N') - 1;
 
-        //dd($ourDateOfWeek);
         $format = 'G:i';
         if (config('settings.time_format') == 'AM/PM') {
             $format = 'g:i A';
@@ -290,6 +350,9 @@ class CartController extends Controller
 
     public function clear(Request $request)
     {
+        if(isset($request->session_id)){
+            $this->setSessionID($request->session_id);
+        }
 
         //Get the client_id from address_id
 
@@ -308,11 +371,9 @@ class CartController extends Controller
         }
 
         //Find first status id,
-        ///$oreder->stauts()->attach($status->id,['user_id'=>auth()->user()->id]);
         Cart::clear();
 
         return redirect()->route('front')->withStatus(__('Cart clear.'));
-        //return back()->with('success',"The shopping cart has successfully beed added to the shopping cart!");;
     }
 
     /**
@@ -324,6 +385,11 @@ class CartController extends Controller
      */
     public function remove(Request $request)
     {
+
+        if(isset($request->session_id)){
+            $this->setSessionID($request->session_id);
+        }
+
         Cart::remove($request->id);
 
         return response()->json([
@@ -348,6 +414,10 @@ class CartController extends Controller
      */
     private function updateCartQty($howMuch, $item_id)
     {
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }
+
         Cart::update($item_id, ['quantity' => $howMuch]);
 
         return $this->generalApiResponse();
@@ -358,6 +428,10 @@ class CartController extends Controller
      */
     public function increase($id)
     {
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }
+
         return $this->updateCartQty(1, $id);
     }
 
@@ -366,6 +440,10 @@ class CartController extends Controller
      */
     public function decrease($id)
     {
+        if(isset($_GET['session_id'])){
+            $this->setSessionID($_GET['session_id']);
+        }
+        
         return $this->updateCartQty(-1, $id);
     }
 }

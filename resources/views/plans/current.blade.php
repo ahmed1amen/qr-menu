@@ -5,9 +5,16 @@
     </div>
 
 
-    <div class="container-fluid mt--7">
+    <div class="container-fluid mt--9">
+        
+        @if($currentPlan)
+            <!-- Show Current form actions -->
+            @include("plans.info",['planAttribute'=> $planAttribute,'showLinkToPlans'=>false])
+        @endif
 
         <div class="row">
+
+            
 
             <div class="col-12">
                 @if (session('status'))
@@ -27,6 +34,7 @@
             </div>
 
             @foreach ($plans as $plan)
+            @if(   !( config('settings.forceUserToPay',false)&& intval(config('settings.free_pricing_id')).""==$plan['id']."")  )
             <div class="col-md-{{ $col}}">
                 <div class="card shadow">
                     <div class="card-header border-0">
@@ -35,7 +43,7 @@
                                 <h3 class="mb-0">{{ $plan['name'] }}</h3>
                             </div>
                             <div class="col-4">
-                                <h3 class="mb-0">@money($plan['price'], config('settings.cashier_currency'),config('settings.do_convertion'))/{{ $plan['period']==1?__('m'):__('y') }}</h3>
+                                <h3 class="mb-0">@money($plan['price'], config('settings.site_currency','usd'),config('settings.site_do_currency',true))/{{ $plan['period']==1?__('m'):__('y') }}</h3>
                             </div>
 
                         </div>
@@ -53,7 +61,7 @@
                             <tbody>
                                 @foreach (explode(",",$plan['features']) as $feature)
                                     <tr>
-                                        <td>{{ __($feature) }} </td>
+                                        <td>{{ __(trim($feature)) }} </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -95,7 +103,7 @@
                                         {{ config('settings.local_transfer_account')}}
                                         <hr /><br />
                                         {{ __('Plan price ')}}<br />
-                                        @money($plan['price'], config('settings.cashier_currency'),config('settings.do_convertion'))/{{ $plan['period']==1?__('m'):__('y') }}
+                                        @money($plan['price'], config('settings.site_currency','usd'),config('settings.site_do_currency',true))/{{ $plan['period']==1?__('m'):__('y') }}
                                         </div>
                                         <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Close') }}</button>
@@ -112,6 +120,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             @endforeach
 
 
@@ -172,45 +181,7 @@
             </div>
         </div>
 
-        @if($currentPlan)
-
-            <!-- Show Current form actions -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card bg-secondary shadow">
-                        <div class="card-header border-0">
-                            <div class="row align-items-center">
-                                <div class="col-8">
-                                    <h3 class="mb-0">{{ __('Your current plan') }}</h3>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <p>{{ __('You are currently using the ').$currentPlan->name." ".__('plan') }}<p>
-                                @if(strlen(auth()->user()->plan_status)>0)
-                                <p>{{ __('Status').": "}} <strong>{{ auth()->user()->plan_status }}</strong><p>
-                                @endif
-                        </div>
-                        @if(strlen(auth()->user()->cancel_url)>5 && ( config('settings.subscription_processor') == "Stripe"))
-                            <div class="card-footer py-4">
-                                <a href="{{ auth()->user()->update_url }}" target="_blank" class="btn btn-warning">{{__('Update subscription')}}</a>
-                                <a href="{{ auth()->user()->cancel_url }}" target="_blank" class="btn btn-danger">{{__('Cancel subscription')}}</a>
-                            </div>
-                        @endif
-
-                        @if (!(config('settings.subscription_processor') == "Stripe" || config('settings.subscription_processor') == "Local"))
-                            <!-- Payment processor actions -->
-                            @include($subscription_processor.'-subscribe::actions')
-                        @endif
-
-                        
-                    </div>
-
-                </div>
-
-            </div>
-        @endif
+       
 
 
         @include('layouts.footers.auth')
@@ -220,7 +191,7 @@
 
 
 <script type="text/javascript">
-    $(".btn-sub-actions").click(function() {
+    $(".btn-sub-actions").on('click',function() {
         var action = $(this).attr('data-action');
 
         $('#action').val(action);

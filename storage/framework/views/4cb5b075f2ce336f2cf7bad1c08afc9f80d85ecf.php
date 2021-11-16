@@ -18,7 +18,8 @@
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 
         <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+        <link href="<?php echo e(asset('css')); ?>/gfonts.css" rel="stylesheet">
+        
         <!-- Icons -->
         <link href="<?php echo e(asset('argon')); ?>/vendor/nucleo/css/nucleo.css" rel="stylesheet">
         <link href="<?php echo e(asset('argon')); ?>/vendor/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
@@ -37,11 +38,16 @@
          <!-- Font Awesome Icons -->
         <link href="<?php echo e(asset('argonfront')); ?>/css/font-awesome.css" rel="stylesheet" />
 
+        <!-- Lottie -->
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+
         <!-- Range datepicker -->
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        <link rel="stylesheet" type="text/css" href="<?php echo e(asset('vendor')); ?>/daterangepicker/daterangepicker.css" />
 
         <?php echo $__env->yieldContent('head'); ?>
         <?php $config = (new \LaravelPWA\Services\ManifestService)->generate(); echo $__env->make( 'laravelpwa::meta' , ['config' => $config])->render(); ?>
+        <?php echo $__env->make('layouts.rtl', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
         <!-- Custom CSS defined by admin -->
         <link type="text/css" href="<?php echo e(asset('byadmin')); ?>/back.css" rel="stylesheet">
@@ -55,7 +61,7 @@
             <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: none;">
                 <?php echo csrf_field(); ?>
             </form>
-            <?php if(\Request::route()->getName() != "order.success"): ?>
+            <?php if(\Request::route()->getName() != "order.success"&&(\Request::route()->getName() != "selectpay")): ?>
                 <?php echo $__env->make('layouts.navbars.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
             <?php endif; ?>
         <?php endif; ?>
@@ -77,6 +83,13 @@
 
         <?php echo $__env->yieldContent('topjs'); ?>
 
+        <script>
+            var t="<?php echo 'translations'.App::getLocale() ?>";
+           window.translations = <?php echo Cache::get('translations'.App::getLocale(),"[]"); ?>;
+           
+           
+        </script>
+
         <!-- Navtabs -->
         <script src="<?php echo e(asset('argonfront')); ?>/js/core/jquery.min.js" type="text/javascript"></script>
 
@@ -85,9 +98,6 @@
 
         <!-- Nouslider -->
         <script src="<?php echo e(asset('argon')); ?>/vendor/nouislider/distribute/nouislider.min.js" type="text/javascript"></script>
-
-        <!-- Argon JS -->
-        <script src="<?php echo e(asset('argon')); ?>/js/argon.js?v=1.0.0"></script>
 
         <!-- Latest compiled and minified JavaScript -->
         <script src="<?php echo e(asset('vendor')); ?>/jasny/js/jasny-bootstrap.min.js"></script>
@@ -102,14 +112,14 @@
         <script src="<?php echo e(asset('vendor')); ?>/select2/select2.min.js"></script>
 
         <!-- DATE RANGE PICKER -->
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <script type="text/javascript" src="<?php echo e(asset('vendor')); ?>/moment/moment.min.js"></script>
+        <script type="text/javascript" src="<?php echo e(asset('vendor')); ?>/daterangepicker/daterangepicker.min.js"></script>
 
         <!-- All in one -->
         <script src="<?php echo e(asset('custom')); ?>/js/js.js?id=<?php echo e(config('config.version')); ?>"></script>
 
-
-
+        <!-- Argon JS -->
+        <script src="<?php echo e(asset('argon')); ?>/js/argon.js?v=1.0.0"></script>
 
          <!-- Import Vue -->
         <script src="<?php echo e(asset('vendor')); ?>/vue/vue.js"></script>
@@ -123,6 +133,9 @@
         <!-- Notify JS -->
         <script src="<?php echo e(asset('custom')); ?>/js/notify.min.js"></script>
 
+         <!-- Cart custom sidemenu -->
+        <script src="<?php echo e(asset('custom')); ?>/js/cartSideMenu.js"></script>
+
 
         <script>
             var ONESIGNAL_APP_ID = "<?php echo e(config('settings.onesignal_app_id')); ?>";
@@ -130,6 +143,13 @@
             var PUSHER_APP_KEY = "<?php echo e(config('broadcasting.connections.pusher.key')); ?>";
             var PUSHER_APP_CLUSTER = "<?php echo e(config('broadcasting.connections.pusher.options.cluster')); ?>";
         </script>
+        <?php if(auth()->user()!=null&&auth()->user()->hasRole('staff')): ?>
+            <script>
+                //When staff, use the owner
+                USER_ID = '<?php echo e(auth()->user()->restaurant->user_id); ?>';
+            </script>
+        <?php endif; ?>
+       
 
         <!-- OneSignal -->
         <?php if(strlen( config('settings.onesignal_app_id'))>4): ?>
@@ -146,8 +166,6 @@
          <?php if(strlen( config('broadcasting.connections.pusher.app_id'))>2): ?>
             <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
             <script src="<?php echo e(asset('custom')); ?>/js/pusher.js"></script>
-
-
         <?php endif; ?>
 
         <!-- Custom JS defined by admin -->

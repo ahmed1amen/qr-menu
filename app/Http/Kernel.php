@@ -33,7 +33,6 @@ class Kernel extends HttpKernel
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\Language::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
@@ -47,8 +46,6 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            // you may create customized middleware to fit your needs
-            //\Illuminate\Auth\Middleware\Authenticate::class,
         ],
     ];
 
@@ -73,5 +70,6 @@ class Kernel extends HttpKernel
         'isAdmin' => \App\Http\Middleware\CheckIfAdmin::class,
         'verifiedphone' => \App\Http\Middleware\EnsurePhoneIsVerified::class,
         'isRestaurantActive' => \App\Http\Middleware\checkActiveRestaurant::class,
+        'isOwnerOnPro' => \App\Http\Middleware\EnsureOwnerIsOnPROPlan::class,
     ];
 }

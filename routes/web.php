@@ -21,15 +21,14 @@ Route::get('/lang', 'FrontEndController@langswitch')->name('lang.switch');
 Route::post('/search/location', 'FrontEndController@getCurrentLocation')->name('search.location');
 
 Auth::routes(['register' => config('app.isft')]);
-/*Route::get( '/auth0/callback', '\Auth0\Login\Auth0Controller@callback' )->name( 'auth0-callback' );
-Route::get('/login', 'Auth\Auth0IndexController@login' )->name( 'login' );
-Route::get('/logout', 'Auth\Auth0IndexController@logout' )->name( 'logout' )->middleware('auth');
-Route::get('/profiles', 'Auth\Auth0IndexController@profile' )->name( 'profiles' )->middleware('auth');
-*/
 
-Route::get('/home', 'HomeController@index')->name('home');
 
-//Route::group(['middleware' => 'auth'], function () {
+Route::get('/home/{lang?}', 'HomeController@index')->name('home')->middleware('isOwnerOnPro');
+
+Route::get('/selectpay/{order}', 'PaymentController@selectPaymentGateway')->name('selectpay');
+Route::get('/selectedpaymentt/{order}/{payment}', 'PaymentController@selectedPaymentGateway')->name('selectedpaymentt');
+
+
 Route::group(['middleware' => ['auth']], function () {
     Route::resource('user', 'UserController', ['except' => ['show']]);
     Route::post('/user/push', 'UserController@checkPushNotificationId');
@@ -43,6 +42,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('restaurants_add_new_shift/{restaurant}', 'RestorantController@addnewshift')->name('restaurant.addshift');
 
         Route::get('restaurants/loginas/{restaurant}', 'RestorantController@loginas')->name('restaurants.loginas');
+        
 
         Route::get('removedemodata', 'RestorantController@removedemo')->name('restaurants.removedemo');
         Route::get('sitemap','SettingsController@regenerateSitemap')->name('regenerate.sitemap');
@@ -60,18 +60,32 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/processes/del/{process}', 'ProcessController@destroy')->name('processes.delete');
         });
 
+        Route::resource('allergens', 'CRUD\AllergensController');
+        Route::get('/allergens/del/{allergen}', 'CRUD\AllergensController@destroy')->name('allergens.delete');
+
         Route::name('restaurant.')->group(function () {
 
             //Remove restaurant
             Route::get('removerestaurant/{restaurant}', 'RestorantController@remove')->name('remove');
 
             // Tables
-            Route::get('tables', 'TablesController@index')->name('tables.index');
+            Route::get('tables', 'TablesController@index')->name('tables.index')->middleware('isOwnerOnPro');
             Route::get('tables/{table}/edit', 'TablesController@edit')->name('tables.edit');
             Route::get('tables/create', 'TablesController@create')->name('tables.create');
             Route::post('tables', 'TablesController@store')->name('tables.store');
             Route::put('tables/{table}', 'TablesController@update')->name('tables.update');
             Route::get('tables/del/{table}', 'TablesController@destroy')->name('tables.delete');
+
+            // Delivery areas
+            Route::get('simpledelivery', 'SimpleDeliveryController@index')->name('simpledelivery.index')->middleware('isOwnerOnPro');
+            Route::get('simpledelivery/{delivery}/edit', 'SimpleDeliveryController@edit')->name('simpledelivery.edit');
+            Route::get('simpledelivery/create', 'SimpleDeliveryController@create')->name('simpledelivery.create');
+            Route::post('simpledelivery', 'SimpleDeliveryController@store')->name('simpledelivery.store');
+            Route::put('simpledelivery/{delivery}', 'SimpleDeliveryController@update')->name('simpledelivery.update');
+            Route::get('simpledelivery/del/{delivery}', 'SimpleDeliveryController@destroy')->name('simpledelivery.delete');
+
+
+            
 
             // Areas
             Route::resource('restoareas', 'RestoareasController');
@@ -89,7 +103,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::put('coupons/{coupon}', 'CouponsController@update')->name('coupons.update');
             Route::get('coupons/del/{coupon}', 'CouponsController@destroy')->name('coupons.delete');
 
-            Route::post('coupons/apply', 'CouponsController@apply')->name('coupons.apply');
+           
 
             //Banners
             Route::get('banners', 'BannersController@index')->name('banners.index');
@@ -113,6 +127,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/import/restaurants', 'RestorantController@import')->name('import.restaurants');
     Route::get('/restaurant/{restaurant}/activate', 'RestorantController@activateRestaurant')->name('restaurant.activate');
     Route::post('/restaurant/workinghours', 'RestorantController@workingHours')->name('restaurant.workinghours');
+    Route::get('restaurants/working_hours/remove/{hours}','RestorantController@workingHoursremove')->name('restaurant.workinghoursremove');
     Route::post('/restaurant/address','RestorantController@getCoordinatesForAddress')->name('restaurant.coordinatesForAddress');
 
     Route::prefix('finances')->name('finances.')->group(function () {
@@ -140,11 +155,12 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('driverlocations', 'DriverController@driverlocations');
     Route::get('restaurantslocations', 'RestorantController@restaurantslocations');
 
-    Route::get('live', 'OrderController@live');
+    Route::get('live', 'OrderController@live')->middleware('isOwnerOnPro');
     Route::get('/updatestatus/{alias}/{order}', ['as' => 'update.status', 'uses'=>'OrderController@updateStatus']);
 
     Route::resource('settings', 'SettingsController');
     Route::get('apps','AppsController@index')->name('apps.index');
+    Route::get('appremove/{alias}','AppsController@remove')->name('apps.remove');
     Route::post('apps','AppsController@store')->name('apps.store');
     Route::get('cloudupdate', 'SettingsController@cloudupdate')->name('settings.cloudupdate');
     Route::get('systemstatus', 'SettingsController@systemstatus')->name('systemstatus');
@@ -154,7 +170,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::put('profile', ['as' => 'profile.update', 'uses' => 'ProfileController@update']);
     Route::put('profile/password', ['as' => 'profile.password', 'uses' => 'ProfileController@password']);
 
-    Route::resource('items', 'ItemsController');
+    Route::resource('items', 'ItemsController')->middleware('isOwnerOnPro');
     Route::prefix('items')->name('items.')->group(function () {
         Route::get('reorder/{up}', 'ItemsController@reorderCategories')->name('reorder');
         Route::get('list/{restorant}', 'ItemsController@indexAdmin')->name('admin');
@@ -186,7 +202,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('categories', 'CategoriesController');
 
     Route::resource('addresses', 'AddressControler');
-    //Route::post('/order/address','AddressControler@orderAddress')->name('order.address');
     Route::get('/new/address/autocomplete', 'AddressControler@newAddressAutocomplete');
     Route::post('/new/address/details', 'AddressControler@newAdressPlaceDetails');
     Route::post('/address/delivery', 'AddressControler@AddressInDeliveryArea');
@@ -208,6 +223,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('qr', 'QRController@index')->name('qr');
 
+    
     Route::post('/pay', 'PaymentController@redirectToGateway')->name('pay');
     Route::get('/payment/callback', 'PaymentController@handleGatewayCallback');
 
@@ -221,11 +237,14 @@ if (config('app.isqrsaas')) {
     Route::post('/whatsapp/store', 'OrderController@storeWhatsappOrder')->name('whatsapp.store');
 }
 
+Route::post('coupons/apply', 'CouponsController@apply')->name('coupons.apply');
+
 Route::get('/handleOrderPaymentStripe/{order}', 'PaymentController@handleOrderPaymentStripe')->name('handle.order.payment.stripe');
 
 Route::get('/get/rlocation/{restaurant}', 'RestorantController@getLocation');
 Route::get('/footer-pages', 'PagesController@getPages');
 Route::get('/cart-getContent', 'CartController@getContent')->name('cart.getContent');
+Route::get('/cart-getContent-POS', 'CartController@getContentPOS')->name('cart.getContentPOS');
 Route::post('/cart-add', 'CartController@add')->name('cart.add');
 Route::post('/cart-remove', 'CartController@remove')->name('cart.remove');
 Route::get('/cart-update', 'CartController@update')->name('cart.update');
@@ -246,6 +265,7 @@ Route::get('/login/facebook/redirect', 'Auth\LoginController@facebookHandleProvi
 Route::get('/new/'.config('settings.url_route').'/register', 'RestorantController@showRegisterRestaurant')->name('newrestaurant.register');
 Route::post('/new/restaurant/register/store', 'RestorantController@storeRegisterRestaurant')->name('newrestaurant.store');
 
+
 Route::get('phone/verify', 'PhoneVerificationController@show')->name('phoneverification.notice');
 Route::post('phone/verify', 'PhoneVerificationController@verify')->name('phoneverification.verify');
 
@@ -253,13 +273,16 @@ Route::get('/get/rlocation/{restorant}', 'RestorantController@getLocation');
 Route::get('/items/variants/{variant}/extras', 'Items\VariantsController@extras')->name('items.variants.extras');
 
 //Languages routes
-$availableLanguagesENV = ENV('FRONT_LANGUAGES', 'EN,English,IT,Italian,FR,French,DE,German,ES,Spanish,RU,Russian,PT,Portuguese,TR,Turkish');
+$availableLanguagesENV = ENV('FRONT_LANGUAGES', 'EN,English,IT,Italian,FR,French,DE,German,ES,Spanish,RU,Russian,PT,Portuguese,TR,Turkish,ar,Arabic');
 $exploded = explode(',', $availableLanguagesENV);
 if (count($exploded) > 3 && config('app.isqrsaas')) {
     for ($i = 0; $i < count($exploded); $i += 2) {
         $mode="qrsaasMode";
         if(config('settings.is_whatsapp_ordering_mode')){
             $mode="whatsappMode";
+        }
+        if(config('settings.is_pos_cloud_mode')){
+            $mode="posMode";
         }
         Route::get('/'.strtolower($exploded[$i]), 'FrontEndController@'.$mode)->name('lang.'.strtolower($exploded[$i]));
     }
@@ -276,5 +299,8 @@ Route::get('new/driver/register', 'DriverController@register')->name('driver.reg
 Route::post('new/driver/register/store', 'DriverController@registerStore')->name('driver.register.store');
 
 Route::get('order/success', 'OrderController@success')->name('order.success');
+Route::get('order/successwhatsapp/{order}', 'OrderController@silentWhatsAppRedirect')->name('order.successwhatsapp');
+
+Route::get('order/cancel', 'OrderController@cancel')->name('order.cancel');
 
 Route::post('/fb-order', 'OrderController@fbOrderMsg')->name('fb.order');

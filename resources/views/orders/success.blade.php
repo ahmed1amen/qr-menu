@@ -4,13 +4,8 @@
     <div class="row justify-content-center">
         <div class="card shadow border-0 mt-8">
             <div class="card-body text-center">
-                <div class="swal2-icon swal2-success swal2-animate-success-icon" style="display: flex;">
-                    <div class="swal2-success-circular-line-left" style="background-color: rgb(255, 255, 255);"></div>
-                    <span class="swal2-success-line-tip"></span>
-                    <span class="swal2-success-line-long"></span>
-                    <div class="swal2-success-ring"></div>
-                    <div class="swal2-success-fix" style="background-color: rgb(255, 255, 255);"></div>
-                    <div class="swal2-success-circular-line-right" style="background-color: rgb(255, 255, 255);"></div>
+                <div class="justify-content-center text-center">
+                    <lottie-player src="https://assets5.lottiefiles.com/packages/lf20_y2hxPc.json"  background="transparent"  speed="1"  style=" height: 200px;"    autoplay></lottie-player>
                 </div>
                 <h2 class="display-2">{{ __("You're all set!") }}</h2>
                 <h1 class="mb-4">
@@ -30,13 +25,30 @@
                             <a href="{{ route('vendor',$order->restorant->subdomain) }}" class="btn btn-outline-primary btn-sm">{{ __('Go back to restaurant') }}</a>
                         @endif
 
-                        <!-- WHATS APP -->
+                        <!-- WHATS APP Buttton -->
                         @if ($showWhatsApp)
                             <a target="_blank" href="?order={{$_GET['order']}}&whatsapp=yes"  class="btn btn-lg btn-icon btn btn-success mt-4 paymentbutton">
                                 <span style="color:white" class="btn-inner--icon lg"><i class="fa fa-whatsapp" aria-hidden="true"></i></span>
                                 <span style="color:white" class="btn-inner--text">{{ __('Send order on WhatsApp') }}</span>
                             </a>
                         @endif
+                        <!-- End WhattsApp Button -->
+
+                        <!-- Whats App  Redirect -->
+                       @isset($whatsappurl)
+                        <script type="text/javascript">
+
+                                var redirectDone=false;
+                                if(!redirectDone){
+                                    redirectDone=true;
+
+                                    var redirectWindow = window.open('{{ $whatsappurl }}', '_blank');
+                                    redirectWindow.location;
+                                }
+                            </script>
+                       @endisset
+                            
+                        
                         
                     </div>
                 </div>

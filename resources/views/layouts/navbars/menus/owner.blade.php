@@ -32,16 +32,22 @@
     </li>
 
     @if (config('app.isqrsaas') && (!config('settings.qrsaas_disable_odering') || config('settings.enable_guest_log')))
-        @if(!config('settings.is_whatsapp_ordering_mode'))
+        @if(!config('settings.is_whatsapp_ordering_mode') || in_array("poscloud", config('global.modules',[]))  || in_array("deliveryqr", config('global.modules',[])) )
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('admin.restaurant.tables.index') }}">
                     <i class="ni ni-ungroup text-red"></i> {{ __('Tables') }}
                 </a>
             </li>
         @endif
+    @elseif (config('app.isft') && in_array("poscloud", config('global.modules',[])) )
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.restaurant.tables.index') }}">
+                <i class="ni ni-ungroup text-red"></i> {{ __('Tables') }}
+            </a>
+        </li>
     @endif
 
-    @if (config('app.isqrsaas')&&!config('settings.is_whatsapp_ordering_mode'))
+    @if (config('app.isqrsaas')&&!config('settings.is_whatsapp_ordering_mode')&&!config('settings.is_pos_cloud_mode'))
         <li class="nav-item">
             <a class="nav-link" href="{{ route('qr') }}">
                 <i class="ni ni-mobile-button text-red"></i> {{ __('QR Builder') }}
@@ -54,6 +60,14 @@
             </a>
         </li>
         @endif
+    @endif
+
+    @if (config('app.isqrsaas')&&(config('settings.is_whatsapp_ordering_mode') || in_array("poscloud", config('global.modules',[]))  ||  in_array("deliveryqr", config('global.modules',[]))  ))
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.restaurant.simpledelivery.index') }}">
+                <i class="ni ni-pin-3 text-blue"></i> {{ __('Delivery areas') }}
+            </a>
+        </li>
     @endif
 
     @if(config('settings.enable_pricing'))
@@ -72,19 +86,30 @@
             </li>
         @endif
 
-        <!--
+      
+        @if ( in_array("coupons", config('global.modules',[]))   )
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('admin.restaurant.coupons.index') }}">
+                    <i class="ni ni-tag text-pink"></i> {{ __('Coupons') }}
+                </a>
+            </li>
+        @endif
+
+
+    @if (!config('settings.is_pos_cloud_mode'))
         <li class="nav-item">
-            <a class="nav-link" href="{{ route('admin.restaurant.coupons.index') }}">
-                <i class="ni ni-tag text-pink"></i> {{ __('Coupons') }}
-            </a>
-        </li>
-    -->
-
-
-    <li class="nav-item">
             <a class="nav-link" href="{{ route('share.menu') }}">
                 <i class="ni ni-send text-green"></i> {{ __('Share') }}
             </a>
-    </li>
+        </li>
+    @endif
+    @foreach (auth()->user()->getExtraMenus() as $menu)
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route($menu['route']) }}">
+                    <i class="{{ $menu['icon'] }}"></i> {{ __($menu['name']) }}
+                </a>
+        </li>
+    @endforeach
 
 </ul>

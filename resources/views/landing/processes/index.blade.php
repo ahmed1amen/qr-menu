@@ -1,4 +1,4 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 
 @section('cardbody')
 
@@ -10,6 +10,14 @@
             <a href="{{ route("admin.landing.processes.edit",["process"=>$item->id]) }}">
             <div class="info info-horizontal info-hover-primary mt-5" data-toggle="tooltip" data-placement="top" title="{{ __('Edit this process')}}">
               <div class="description pl-4">
+                @if (strlen( $item->image ))
+                <img 
+                  class="image-in-card" 
+                  src='{{ $item->image_link }}'
+                  width="150" 
+                />
+                @endif
+                
                 <h3 class="title">{{ $item->title }}</h3>
                 <p>{{ $item->description }}</p>
                 <a href="{{ $item->link }}" class="text-info">{{ $item->link_name }}</a>

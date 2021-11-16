@@ -125,12 +125,43 @@
             <div class="modal-body p-0">
                 <div class="card bg-secondary shadow border-0">
                     <div class="card-body px-lg-5 py-lg-5">
-                    <form role="form" method="GET" id="form-time-to-prepare" action="{{ route('update.status', ['accepted_by_restaurant',isset($order)?$order:""]) }}">
+                    <form role="form" method="GET" id="form-time-to-prepare" action="">
                         <div class="form-group">
                             <input type="hidden" name="time_to_prepare" id="time_to_prepare"/>
                             @for($i=5; $i<=150; $i+=5)
                                 <button type="button" value="{{ $i }}" class="btn btn-outline-primary btn-time-to-prepare">{{ $i }}</button>
                             @endfor
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" id="btn-submit-time-prepare" class="btn btn-primary my-4" id="save-ratings">{{ __('Save') }}</button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-order-item-count" tabindex="-1" role="dialog" aria-labelledby="modal-form" aria-hidden="true">
+    <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title-new-item">{{ __('Quantity') }}</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="card bg-secondary shadow border-0">
+                    <div class="card-body px-lg-5 py-lg-5">
+                    <form role="form" method="POST" id="form-set_qty" action="{{ route('orders.update',['order'=>isset($order)?$order->id:1]) }}">
+                        @csrf
+                        @method('PATCH')
+                        <div class="form-group">
+                            <label class="form-control-label" for="item_qty">{{ __('Quantity') }}</label>
+                            <input min="0" class="form-control form-control " type="number" name="item_qty" id="item_qty"/>
+                            <input type="hidden" name="pivot_id" id="pivot_id"/>
+                            <input type="hidden" name="order_id" id="order_id"/>
                         </div>
                         <div class="text-center">
                             <button type="submit" id="btn-submit-time-prepare" class="btn btn-primary my-4" id="save-ratings">{{ __('Save') }}</button>

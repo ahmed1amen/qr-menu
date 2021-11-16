@@ -28,13 +28,19 @@ class DemoSeeder extends Seeder
          * Cities / since 1_5
          * Item versions / since 1_5
          * Reviews / since 1_5.
+         * Expenses / since 2_5
          */
+
+        
 
         //Cities
         $this->call(CitiesTableSeeder::class);
 
         //Restorants
         $this->call(RestorantsTableSeeder::class);
+
+        //Expenses
+        $this->call(ExpensesTableSeeder::class);
 
         if (config('app.isqrsaas')) {
             //QRSAAS
@@ -45,14 +51,16 @@ class DemoSeeder extends Seeder
 
             $demoOrdersLast3Days = \App\Order::factory()->count(100)->recent()->create();
 
-            //Whatsapp
-            if(config('settings.is_whatsapp_ordering_mode')){
+            //Whatsapp and POS
+            if(config('settings.is_whatsapp_ordering_mode')||config('settings.is_pos_cloud_mode')){
                 $this->call(LandingPageSeeder::class);
             }
         } else {
 
+            $this->call(PlansSeeder::class);
+
             //Driver
-            DB::table('users')->insert([
+            $demoDriverId=DB::table('users')->insertGetId([
                 'name' => 'Demo Driver',
                 'email' =>  'driver@example.com',
                 'password' => Hash::make('secret'),
@@ -67,11 +75,11 @@ class DemoSeeder extends Seeder
             DB::table('model_has_roles')->insert([
                 'role_id' => 3,
                 'model_type' =>  \App\User::class,
-                'model_id'=> 3,
+                'model_id'=> $demoDriverId,
             ]);
 
             //Client 1
-            DB::table('users')->insert([
+            $demoClientId=DB::table('users')->insertGetId([
                 'name' => 'Demo Client 1',
                 'email' =>  'client@example.com',
                 'password' => Hash::make('secret'),
@@ -86,11 +94,11 @@ class DemoSeeder extends Seeder
             DB::table('model_has_roles')->insert([
                 'role_id' => 4,
                 'model_type' =>  \App\User::class,
-                'model_id'=> 4,
+                'model_id'=> $demoClientId,
             ]);
 
             //Client 2
-            DB::table('users')->insert([
+            $demoClientId2=DB::table('users')->insertGetId([
                 'name' => 'Demo Client 2',
                 'email' =>  'client2@example.com',
                 'password' => Hash::make('secret'),
@@ -105,11 +113,11 @@ class DemoSeeder extends Seeder
             DB::table('model_has_roles')->insert([
                 'role_id' => 4,
                 'model_type' =>  \App\User::class,
-                'model_id'=> 5,
+                'model_id'=> $demoClientId2,
             ]);
 
             //Driver 2
-            DB::table('users')->insert([
+            $demoDriverId2=DB::table('users')->insertGetId([
                 'name' => 'Demo Driver 2',
                 'email' =>  'driver2@example.com',
                 'password' => Hash::make('secret'),
@@ -124,7 +132,7 @@ class DemoSeeder extends Seeder
             DB::table('model_has_roles')->insert([
                 'role_id' => 3,
                 'model_type' =>  \App\User::class,
-                'model_id'=> 6,
+                'model_id'=> $demoDriverId2,
             ]);
 
             //Addresses

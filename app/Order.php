@@ -2,23 +2,31 @@
 
 namespace App;
 
+use App\Scopes\RestorantScope;
 use App\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasConfig;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
+    use SoftDeletes;
     use HasFactory;
     use HasConfig;
+
+    protected static function booted(){
+        static::addGlobalScope(new RestorantScope);
+    }
+
 
     protected $modelName="App\Order";
 
     protected $table = 'orders';
 
-    protected $appends = ['time_formated','last_status','is_prepared','actions'];
+    protected $appends = ['order_price_with_discount','time_created','time_formated','last_status','is_prepared','actions','configs','tableassigned'];
 
-    protected $fillable = ['fee', 'fee_value', 'static_fee', 'vatvalue','payment_info','mollie_payment_key','whatsapp_phone'];
+    protected $fillable = ['coupon','discount','fee', 'fee_value', 'static_fee', 'vatvalue','payment_info','mollie_payment_key','whatsapp_address','md'];
 
     public function restorant()
     {
@@ -55,7 +63,15 @@ class Order extends Model
         return $this->belongsToMany(\App\Status::class, 'order_has_status', 'order_id', 'status_id')->withPivot('user_id', 'created_at', 'comment')->orderBy('order_has_status.id', 'DESC')->limit(1);
     }
 
-    
+    public function getTableassignedAttribute()
+    {
+        return $this->table()->with('restoarea')->get();
+    }
+
+    public function getOrderPriceWithDiscountAttribute()
+    {
+        return $this->order_price-$this->discount;
+    }
 
     public function getLastStatusAttribute()
     {
@@ -77,10 +93,19 @@ class Order extends Model
         if(config('app.isqrsaas')){
             if(config('settings.is_whatsapp_ordering_mode')){
                 //WP
-                $delivery=$this->delivery_method==1?__('Delivery'):__('Pickup');
+                $delivery=$this->delivery_method.""=="1"?__('Delivery'):__('Pickup');
+            }else if(config('settings.is_pos_cloud_mode')){
+                //POS
+                $delivery=$this->delivery_method==1?__('Delivery'):($this->delivery_method==3?__('Dine in'):__('Takeaway'));
             }else{
                 //QR
-                $delivery=$this->delivery_method==3?__('Dine in'):__('Takeaway');
+                if($this->delivery_method==1){
+                    //Possible when using modules
+                    $delivery=__('Delivery');
+                }else{
+                    $delivery=$this->delivery_method==3?__('Dine in'):__('Takeaway');
+                }
+                
             }
         }
 
@@ -95,7 +120,7 @@ class Order extends Model
 
     public function items()
     {
-        return $this->belongsToMany(\App\Items::class, 'order_has_items', 'order_id', 'item_id')->withPivot(['qty', 'extras', 'vat', 'vatvalue', 'variant_price', 'variant_name']);
+        return $this->belongsToMany(\App\Items::class, 'order_has_items', 'order_id', 'item_id')->withPivot(['qty', 'extras', 'vat', 'vatvalue', 'variant_price', 'variant_name','id']);
     }
 
     public function ratings()
@@ -104,6 +129,7 @@ class Order extends Model
     }
 
     public function getSocialMessageAttribute($encode=false){
+        \App\Services\ConfChanger::switchCurrency($this->restorant);
         $message = view('messages.social', ['order' => $this])->render();
         $message=str_replace('&#039;',"'",$message);
         if($encode){
@@ -111,6 +137,10 @@ class Order extends Model
             return $message;
         }
         return $message;
+    }
+
+    public function getTimeCreatedAttribute(){
+        return $this->created_at?$this->created_at->locale(config('app.locale'))->isoFormat('LLLL'):null;
     }
 
     public function getTimeFormatedAttribute()
@@ -153,6 +183,10 @@ class Order extends Model
         });
     }
 
+    public function getConfigsAttribute(){
+        return $this->getAllConfigs();
+    }
+
 
     public function getActionsAttribute(){
         //Find the current user role
@@ -167,6 +201,8 @@ class Order extends Model
             return $this->getDriverOrderActions();
         }else if (auth()->user()->hasRole('owner')) {
             return $this->getOwnerOrderActions();
+        }else if (auth()->user()->hasRole('staff')) {
+            return $this->getOwnerOrderActions();
         }
     }
 
@@ -180,7 +216,7 @@ class Order extends Model
             if($this->payment_status.""=="paid"){
                 $message=__('Order is already payed by the client.');
             }else{
-                $message=__('Order is not paid yet. Client needs to give you')." ".money($this->order_price+$this->delivery_price,config('settings.cashier_currency'), config('settings.do_convertion'))->format();
+                $message=__('Order is not paid yet. Client needs to give you')." ".money($this->order_price_with_discount+$this->delivery_price,config('settings.cashier_currency'), config('settings.do_convertion'))->format();
             }
             
             return ["buttons"=>['delivered'],'message'=>$message];
@@ -214,7 +250,9 @@ class Order extends Model
                 return ["buttons"=>['rejected_by_restaurant','accepted_by_restaurant'],'message'=>""];
             }else if(in_array($lastStatusAlias,["assigned_to_driver","accepted_by_restaurant","accepted_by_driver","rejected_by_driver"])){
                 return ["buttons"=>['prepared'],'message'=>""];
-            }else if(in_array($lastStatusAlias,["prepared"])&&config('app.allow_self_deliver')&&$this->delivery_method.""=="2"){
+            }else if(in_array($lastStatusAlias,["prepared"])&&(config('app.allow_self_deliver')||$this->restorant->self_deliver.""=="1")/*&&$this->delivery_method.""=="2"*/){
+                return ["buttons"=>['delivered'],'message'=>""];
+            }else if(in_array($lastStatusAlias,["prepared"])&&$this->delivery_method.""=="2"){
                 return ["buttons"=>['delivered'],'message'=>""];
             }
         }else if(config('app.isqrsaas')){

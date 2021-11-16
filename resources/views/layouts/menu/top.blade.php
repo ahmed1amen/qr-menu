@@ -67,7 +67,11 @@
             <li class="web-menu">
              
 
-              @if(\Request::route()->getName() != "cart.checkout")
+              @if(
+                \Request::route()->getName() != "blog"&&
+                \Request::route()->getName() != "pages.show"&&
+                \Request::route()->getName() != "cart.checkout"&&
+                !config('settings.is_pos_cloud_mode'))
                 <a  id="desCartLink" onclick="openNav()" class="btn btn-neutral btn-icon btn-cart" style="cursor:pointer;">
                   <span class="btn-inner--icon">
                     <i class="fa fa-shopping-cart"></i>
@@ -80,11 +84,16 @@
             <li class="mobile-menu">
               @yield('addiitional_button_1_mobile')
               @yield('addiitional_button_2_mobile')
-              @if(\Request::route()->getName() != "cart.checkout")
+              @if(
+              \Request::route()->getName() != "blog"&&
+              \Request::route()->getName() != "pages.show"&&
+              \Request::route()->getName() != "cart.checkout"&&!config('settings.is_pos_cloud_mode'))
+                
                 <a  id="mobileCartLink" onclick="openNav()" class="nav-link" style="cursor:pointer;">
                     <i class="fa fa-shopping-cart"></i>
                     <span class="nav-link-inner--text">{{ __('Cart') }}</span>
                 </a>
+              
               @endif
 
 

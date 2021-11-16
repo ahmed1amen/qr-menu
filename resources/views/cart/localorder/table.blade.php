@@ -6,7 +6,13 @@
       <div class="card-content border-top">
         <br />
         <input type="hidden" value="{{$restorant->id}}" id="restaurant_id"/>
-        @include('partials.select',$tables)
+        @if ($tid==null)
+          @include('partials.select',$tables)
+        @else
+          <p>{{$tableName}}</p>
+          <input type="hidden" value="{{$tid}}" name="table_id"  id="table_id"/>
+        @endif
+       
       </div>
       <br />
       <br />

@@ -1,4 +1,4 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 @section('thead')
     <th>{{ __('Name') }}</th>
     <th>{{ __('Short name') }}</th>

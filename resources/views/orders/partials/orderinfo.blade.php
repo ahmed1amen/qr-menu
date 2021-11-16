@@ -64,11 +64,28 @@
              <?php 
                  $theItemPrice= ($item->pivot->variant_price?$item->pivot->variant_price:$item->price);
              ?>
-             <li><h4>{{ $item->pivot->qty." X ".$item->name }} -  @money($theItemPrice, $currency,$convert)  =  ( @money( $item->pivot->qty*$theItemPrice, $currency,true) )
-                 @hasrole('admin|driver|owner')
-                     @if($item->pivot->vatvalue>0))
-                     <span class="small">-- {{ __('VAT ').$item->pivot->vat."%: "}} ( @money( $item->pivot->vatvalue, $currency,$convert) )</span>
-                     @endif
+            @if ( $item->pivot->qty>0)
+            <li><h4>{{ $item->pivot->qty." X ".$item->name }} -  @money($theItemPrice, $currency,$convert)  =  ( @money( $item->pivot->qty*$theItemPrice, $currency,true) )
+                 
+                @if($item->pivot->vatvalue>0))
+                    <span class="small">-- {{ __('VAT ').$item->pivot->vat."%: "}} ( @money( $item->pivot->vatvalue, $currency,$convert) )</span>
+                @endif
+                 @hasrole('admin|owner')
+                    <?php $lasStatusId=$order->status->pluck('id')->last(); ?>
+                    @if ($lasStatusId!=7&&$lasStatusId!=11)
+                        <span class="small">
+                            <button 
+                            data-toggle="modal" 
+                            data-target="#modal-order-item-count" 
+                            type="button" 
+                            onclick="$('#item_qty').val('{{$item->pivot->qty}}'); $('#pivot_id').val('{{$item->pivot->id}}');   $('#order_id').val('{{$order->id}}');"
+                            class="btn btn-outline-danger btn-sm">
+                                <span class="btn-inner--icon">
+                                    <i class="ni ni-ruler-pencil"></i>
+                                </span>
+                            </button>
+                        </span>
+                    @endif
                  @endif
              </h4>
                  @if (strlen($item->pivot->variant_name)>2)
@@ -103,8 +120,25 @@
                  @endif
                  <br />
              </li>
+            @else
+                <li>
+                    {{ __('Removed') }}
+                    <h4 class="text-muted">{{$item->name }} -  @money($theItemPrice, $currency,$convert) 
+                 
+                        @if($item->pivot->vatvalue>0))
+                            <span class="small">-- {{ __('VAT ').$item->pivot->vat."%: "}} ( @money( $item->pivot->vatvalue, $currency,$convert) )</span>
+                        @endif
+                    </h4>
+                    <br />
+                </li>
+            @endif
+             
          @endforeach
      </ul>
+     @if(!empty($order->whatsapp_address))
+        <br/>
+        <h4>{{ __('Address') }}: {{ $order->whatsapp_address }}</h4>
+     @endif
      @if(!empty($order->comment))
         <br/>
         <h4>{{ __('Comment') }}: {{ $order->comment }}</h4>
@@ -124,11 +158,15 @@
  
      @endif
      <h4>{{ __("Sub Total") }}: @money( $order->order_price, $currency,$convert)</h4>
-     @if(config('app.isft'))
+     @if($order->delivery_method==1)
      <h4>{{ __("Delivery") }}: @money( $order->delivery_price, $currency,$convert)</h4>
      @endif
+     @if ($order->discount>0)
+        <h4>{{ __("Discount") }}: @money( $order->discount, $currency,$convert)</h4>
+        <h4>{{ __("Coupon code") }}: {{$order->coupon}}</h4>
+     @endif
      <hr />
-     <h3>{{ __("TOTAL") }}: @money( $order->delivery_price+$order->order_price, $currency,true)</h3>
+     <h3>{{ __("TOTAL") }}: @money( $order->delivery_price+$order->order_price_with_discount, $currency,true)</h3>
      <hr />
      <h4>{{ __("Payment method") }}: {{ __(strtoupper($order->payment_method)) }}</h4>
      <h4>{{ __("Payment status") }}: {{ __(ucfirst($order->payment_status)) }}</h4>

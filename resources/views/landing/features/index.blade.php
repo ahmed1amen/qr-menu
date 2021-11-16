@@ -1,4 +1,4 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 
 @section('cardbody')
 <div class="container-fluid">
@@ -12,7 +12,8 @@
                         <div class="imgHolderInCard">
                         <img 
                             class="image-in-card" 
-                            src='{{ str_contains($item->image, "social") ? $item->image : "/uploads/restorants/".$item->image."_large.jpg" }}'
+                            src='{{ $item->image_link }}'
+
                             width="150" 
                             height="150"
                         />

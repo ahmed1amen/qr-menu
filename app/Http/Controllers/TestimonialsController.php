@@ -133,12 +133,11 @@ class TestimonialsController extends Controller
     {
         $this->validateAccess();
         $fields = $this->getFields();
-        $fields[0]['value'] = $testimonial->image;
+        $fields[0]['value'] = $testimonial->image_link;
         $fields[1]['value'] = $testimonial->title;
         $fields[2]['value'] = $testimonial->subtitle;
         $fields[3]['value'] = $testimonial->description;
 
-        //dd($option);
         return view('general.form', ['setup' => [
             'title' => __('Edit this testimonial'),
             'action_link' => route('admin.landing.testimonials.index'),

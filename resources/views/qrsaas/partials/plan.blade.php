@@ -21,7 +21,7 @@
         <div class="card-footer px-4 pb-4">
             <!-- Button -->
             <a href="{{ route('newrestaurant.register') }}" class="btn btn-block btn-outline-gray animate-up-2">
-                {{ __('qrlanding.pricing_button') . " "}} {{ $plan['name'] }}<span class="icon icon-xs ml-3"><i class="fas fa-arrow-right"></i></span>
+                {{ __('qrlanding.join_now') . " "}}<span class="icon icon-xs ml-3"><i class="fas fa-arrow-right"></i></span>
             </a>
         </div>
     </div>

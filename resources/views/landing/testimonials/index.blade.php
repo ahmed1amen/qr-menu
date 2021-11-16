@@ -1,4 +1,4 @@
-@extends('general.index', $setup);
+@extends('general.index', $setup)
 
 @section('cardbody')
 <div class="container-fluid">
@@ -12,7 +12,7 @@
                 <div class="testimonials-item-author">
                   <div class="testimonials-item-author-image-container">
                     <img class="avatar rounded-circle"
-                      src='{{ str_contains($item->image, "social") ? $item->image : "/uploads/restorants/".$item->image."_large.jpg" }}'
+                      src='{{ $item->image_link }}'
                       class="testimonials-item-author-image">
                   </div>
                   <div class="testimonials-item-author-info">

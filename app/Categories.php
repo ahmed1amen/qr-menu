@@ -5,12 +5,14 @@ namespace App;
 use App\Models\TranslateAwareModel;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class Categories extends TranslateAwareModel implements Sortable
 {
 
     use SortableTrait;
+    use SoftDeletes;
 
     protected $table = 'categories';
     public $translatable = ['name'];
@@ -43,7 +45,7 @@ class Categories extends TranslateAwareModel implements Sortable
         return $this->belongsTo(\App\Restorant::class);
     }
 
-    public static function boot()
+    /*public static function boot()
     {
         parent::boot();
         self::deleting(function (self $categories) {
@@ -54,5 +56,5 @@ class Categories extends TranslateAwareModel implements Sortable
 
             return true;
         });
-    }
+    }*/
 }

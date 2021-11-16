@@ -24,4 +24,8 @@ class Tables extends Model
     {
         return $this->belongsTo(\App\Restorant::class);
     }
+
+    public function getFullNameAttribute(){
+        return $this->restoarea ? $this->restoarea->name.' - '.$this->name : $this->name;
+    }
 }

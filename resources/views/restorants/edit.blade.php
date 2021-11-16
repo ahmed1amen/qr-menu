@@ -20,13 +20,14 @@
                 @endif
 
                 <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 " id="tabs-menagment-main" data-toggle="tab" href="#location" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-square-pin mr-2"></i>{{ __('Location')}}</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link mb-sm-3 mb-md-0" id="tabs-menagment-main" data-toggle="tab" href="#hours" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-time-alarm mr-2"></i>{{ __('Working Hours')}}</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link mb-sm-3 mb-md-0 " id="tabs-menagment-main" data-toggle="tab" href="#location" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-square-pin mr-2"></i>{{ __('Location')}}</a>
+                </li>
                 
-                @if(auth()->user()->hasRole('admin')&&config('app.isqrsaas'))
+                @if(auth()->user()->hasRole('admin'))
                     <li class="nav-item">
                         <a class="nav-link mb-sm-3 mb-md-0" id="tabs-menagment-main" data-toggle="tab" href="#plan" role="tab" aria-controls="tabs-menagment" aria-selected="true"><i class="ni ni-money-coins mr-2"></i>{{ __('Plans')}}</a>
                     </li>
@@ -65,13 +66,19 @@
                                     <a href="{{ route('admin.restaurants.index') }}"
                                         class="btn btn-sm btn-info">{{ __('Back to list') }}</a>
                                     @endif
-                                    @if (config('settings.wildcard_domain_ready'))
-                                    <a target="_blank" href="{{ $restorant->getLinkAttribute() }}"
-                                        class="btn btn-sm btn-success">{{ __('View it') }}</a>
-                                    @else
-                                    <a target="_blank" href="{{ route('vendor',$restorant->subdomain) }}"
-                                        class="btn btn-sm btn-success">{{ __('View it') }}</a>
+                                    @if (!config('settings.is_pos_cloud_mode'))
+                                        @if (config('settings.wildcard_domain_ready'))
+                                        <a target="_blank" href="{{ $restorant->getLinkAttribute() }}"
+                                            class="btn btn-sm btn-success">{{ __('View it') }}</a>
+                                        @else
+                                        <a target="_blank" href="{{ route('vendor',$restorant->subdomain) }}"
+                                            class="btn btn-sm btn-success">{{ __('View it') }}</a>
+                                        @endif
+                                        @if ($hasCloner)
+                                            <a href="{{ route('admin.restaurants.create')."?cloneWith=".$restorant->id }}" class="btn btn-sm btn-warning text-white">{{ __('Clone it') }}</a>
+                                        @endif
                                     @endif
+                                        
 
                                 </div>
 
@@ -98,6 +105,7 @@
                 <div class="tab-pane fade show" id="location" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
                     @include('restorants.partials.location')
                 </div>
+                
 
                 <!-- Tab Hours -->
                 <div class="tab-pane fade show" id="hours" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
@@ -105,7 +113,7 @@
                 </div>
 
                 <!-- Tab Hours -->
-                @if(auth()->user()->hasRole('admin')&&config('app.isqrsaas'))
+                @if(auth()->user()->hasRole('admin'))
                     <div class="tab-pane fade show" id="plan" role="tabpanel" aria-labelledby="tabs-icons-text-1-tab">
                         @include('restorants.partials.plan')
                     </div>

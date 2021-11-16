@@ -47,7 +47,6 @@ class OrderNotification extends Notification
         if (config('settings.twilio_account_sid') && config('settings.send_sms_notifications')) {
             array_push($notificationClasses, TwilioChannel::class);
         }
-        //$notificationClasses=['mail'];
         return $notificationClasses;
     }
 
@@ -55,7 +54,6 @@ class OrderNotification extends Notification
     {
         if ($this->status.'' == '1') {
             //Created
-             //$line = __('You have just received an order');
              $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
@@ -77,14 +75,10 @@ class OrderNotification extends Notification
     public function toOneSignal($notifiable)
     {
 
-        //$greeting=__('Your order has been accepted');
-        //$line=__('We are now working on it!');
-
         if ($this->status.'' == '1') {
             //Created
             $greeting = __('There is new order');
-             //$line = __('You have just received an order');
-             $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
+            $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
             $greeting = __('Your order has been accepted');
@@ -127,10 +121,12 @@ class OrderNotification extends Notification
      */
     public function toMail($notifiable)
     {
+        //Change currency
+        \App\Services\ConfChanger::switchCurrency( $this->order->restorant);
+
         if ($this->status.'' == '1') {
             //Created
             $greeting = __('There is new order');
-            //$line = __('You have just received an order');
             $line = $this->order->delivery_method.'' == '3'? __('You have just received an order on table').' '.$this->order->table->name :  __('You have just received an order');
         } elseif ($this->status.'' == '3') {
             //Accepted
@@ -170,7 +166,11 @@ class OrderNotification extends Notification
             $message->line(__('Delivery').': '.money($this->order->delivery_price, config('settings.cashier_currency'), config('settings.do_convertion')));
         }
 
-        $message->line(__('Total').': '.money($this->order->order_price+$this->order->delivery_price, config('settings.cashier_currency'), config('settings.do_convertion')));
+        if ($this->order->discount>0) {
+            $message->line(__('Discount').': '.money($this->order->discount, config('settings.cashier_currency'), config('settings.do_convertion')));
+        }
+
+        $message->line(__('Total').': '.money($this->order->order_price_with_discount+$this->order->delivery_price, config('settings.cashier_currency'), config('settings.do_convertion')));
 
         return $message;
     }
@@ -183,9 +183,7 @@ class OrderNotification extends Notification
      */
     public function toArray($notifiable)
     {
-        return [
-            //
-        ];
+        return [ ];
     }
 
     public function toDatabase($notifiable)

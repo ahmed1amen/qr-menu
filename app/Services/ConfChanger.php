@@ -14,10 +14,19 @@ class ConfChanger
             //In this method, we should also handle convertion
             config(['settings.do_convertion' => $restaurant->do_covertion.""=="1"]);
         }
-
-        
-       
     }
+
+    public static function switchCurrencyDirectly($currency,$do_covertion)
+    {
+        if(strlen($currency)>1){
+            config(['settings.cashier_currency' => $currency]);
+
+            //In this method, we should also handle convertion
+            config(['settings.do_convertion' => $do_covertion.""=="1"]);
+        }
+    }
+
+
 
     public static function switchLanguage($restaurant){
         

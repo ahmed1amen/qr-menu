@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\RestoArea;
 use Illuminate\Http\Request;
+use Akaunting\Module\Facade as Module;
 
 class RestoareasController extends Controller
 {
@@ -68,11 +69,14 @@ class RestoareasController extends Controller
             'title'=>__('crud.item_managment', ['item'=>__($this->titlePlural)]),
             'action_link'=>route($this->webroute_path.'create'),
             'action_name'=>__('crud.add_new_item', ['item'=>__($this->title)]),
+            'action_link2'=>route('admin.restaurant.tables.index')."?do_not_redirect=true",
+            'action_name2'=>__('Tables'),
             'items'=>$this->getRestaurant()->areas()->paginate(config('settings.paginate')),
             'item_names'=>$this->titlePlural,
             'webroute_path'=>$this->webroute_path,
             'fields'=>$this->getFields(),
             'parameter_name'=>$this->parameter_name,
+            'hasFloorPlan'=>Module::has('floorplan')
         ]]);
     }
 

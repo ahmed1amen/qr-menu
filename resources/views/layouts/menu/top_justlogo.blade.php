@@ -2,14 +2,17 @@
 
 
     <div class="container-fluid">
-        @if(!config('settings.hide_project_branding'))
+        @if(!config('settings.hide_project_branding')||(!isset($restorant)))
           <a class="navbar-brand mr-lg-5" href="/">
             <img src="{{ config('global.site_logo') }}">
           </a>
         @else
-        <a class="navbar-brand mr-lg-5" href="/">
-          
-        </a>
+          <a class="navbar-brand mr-lg-5" id="topLightLogo" href="#">
+            <img src="{{$restorant->logowide }}">
+          </a>
+          <a class="navbar-brand mr-lg-5" id="topDarkLogo" style="display: none" href="#">
+            <img src="{{$restorant->logowidedark }}">
+          </a>
         @endif
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar_global" aria-controls="navbar_global" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,16 +23,16 @@
         <div class="navbar-collapse collapse" id="navbar_global">
           <div class="navbar-collapse-header">
             <div class="row">
-              @if(!config('settings.hide_project_branding'))
+              @if(!config('settings.hide_project_branding')||(!isset($restorant)))
               <div class="col-6 collapse-brand">
-                <a href="#">
+                <a href="/">
                   <img src="{{ config('global.site_logo') }}">
                 </a>
               </div>
               @else
               <div class="col-6 collapse-brand">
                 <a href="#">
-                  
+                  <img src="{{$restorant->logowidedark }}">
                 </a>
               </div>
               @endif
@@ -48,7 +51,7 @@
                 @yield('addiitional_button_2')
                 @if(config('app.isqrsaas'))
                   
-                  @if(!$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
+                  @if(!config('settings.is_whatsapp_ordering_mode') && !$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
                     <li class="web-menu mr-1">
                       <button type="button" class="btn btn-neutral btn-icon btn-cart" data-toggle="modal" data-target="#modal-form">
                         <span class="btn-inner--icon">
@@ -86,10 +89,12 @@
             @endisset
 
 
-            @if(\Request::route()->getName() != "newrestaurant.register" && config('app.ordering'))
+            @if(\Request::route()->getName() != "newrestaurant.register" && config('app.ordering')&&!config('settings.is_pos_cloud_mode'))
             <li class="web-menu">
 
-              @if(\Request::route()->getName() != "cart.checkout")
+              @if(\Request::route()->getName() != "blog"&&
+              \Request::route()->getName() != "pages.show"&&
+              \Request::route()->getName() != "cart.checkout")
                 <a  id="desCartLink" onclick="openNav()" class="btn btn-neutral btn-icon btn-cart" style="cursor:pointer;">
                   <span class="btn-inner--icon">
                     <i class="fa fa-shopping-cart"></i>
@@ -108,7 +113,7 @@
               @isset($restorant)
                 
                 @if(config('app.isqrsaas'))
-                  @if(!$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2)
+                  @if(!$restorant->getConfig('disable_callwaiter', 0) && strlen(config('broadcasting.connections.pusher.app_id')) > 2 && strlen(config('broadcasting.connections.pusher.key')) > 2 && strlen(config('broadcasting.connections.pusher.secret')) > 2&&!config('settings.is_pos_cloud_mode'))
                     <a type="button" class="nav-link" data-toggle="modal" data-target="#modal-form">
                       <span class="btn-inner--icon">
                         <i class="fa fa-bell"></i>
@@ -136,7 +141,10 @@
                   @endif
                 @endif
 
-                @if(\Request::route()->getName() != "newrestaurant.register" && config('app.ordering'))
+                @if(
+                  \Request::route()->getName() != "blog"&&
+                  \Request::route()->getName() != "pages.show"&&
+                \Request::route()->getName() != "newrestaurant.register" && config('app.ordering'))
                 <a id="mobileCartLink" onclick="openNav()" class="nav-link" style="cursor:pointer;">
                     <i class="fa fa-shopping-cart"></i>
                     <span class="nav-link-inner--text">{{ __('Cart') }}</span>

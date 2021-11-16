@@ -1,4 +1,4 @@
-<div id="cartSideNav" class="sidenav-cart sidenav-cart-close">
+<div id="cartSideNav" class="sidenav-cart sidenav-cart-close notranslate">
     <div class="offcanvas-menu-inner">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
         <div class="minicart-content">

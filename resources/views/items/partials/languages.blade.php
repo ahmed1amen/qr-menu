@@ -6,7 +6,7 @@
         @foreach ($availableLanguages as $language)
         <li>
             <a class="dropdown-item" href="?lang={{ $language->language }}">
-                <img src="{{ asset('images') }}/icons/flags/{{ strtoupper($language->language)}}.png" /> {{$language->languageName}}
+                {{$language->languageName}}
             </a>
         </li>
         @endforeach

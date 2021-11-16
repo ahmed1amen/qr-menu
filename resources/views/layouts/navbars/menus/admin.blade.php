@@ -78,12 +78,12 @@
          </li>
          @endif
         @if(config('app.isqrsaas'))
-            @if(config('settings.is_whatsapp_ordering_mode'))
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('admin.landing') }}">
-                    <i class="ni ni-html5 text-green"></i> {{ __('Landing Page') }}
-                </a>
-            </li>
+            @if(config('settings.showlandingmanagment',false)||config('settings.is_whatsapp_ordering_mode')||config('settings.is_pos_cloud_mode'))
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.landing') }}">
+                        <i class="ni ni-html5 text-green"></i> {{ __('Landing Page') }}
+                    </a>
+                </li>
             @endif
         <li class="nav-item">
             <?php
@@ -92,7 +92,7 @@
                     $theLocaleToOpen=strtolower(session('applocale_change'));
                 }
             ?>
-            <a class="nav-link" target="_blank" href="{{ url('/admin/languages')."/".$theLocaleToOpen."/translations".(config('app.isqrsaas')?"?group=qrlanding":"") }}">
+            <a class="nav-link" target="_blank" href="{{ url('/admin/languages')."/".$theLocaleToOpen."/translations" }}">
                 <i class="ni ni-world text-orange"></i>{{ __('Translations') }}
             </a>
         </li>
@@ -103,6 +103,15 @@
             </a>
         </li>
         @endif
+
+        @foreach (auth()->user()->getExtraMenus() as $menu)
+            <li class="nav-item">
+                    <a class="nav-link" href="{{ route($menu['route']) }}">
+                        <i class="{{ $menu['icon'] }}"></i> {{ __($menu['name']) }}
+                    </a>
+            </li>
+        @endforeach
+
         <li class="nav-item">
             <a class="nav-link" href="{{ route('settings.index') }}">
                 <i class="ni ni-settings text-black"></i> {{ __('Site Settings ') }}
@@ -123,4 +132,6 @@
                 <i class="ni ni-cloud-download-95 text-blue"></i> {{ __('Updates') }}
             </a>
         </li>
+
+        
 </ul>

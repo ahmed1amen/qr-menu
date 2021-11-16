@@ -2587,3 +2587,38 @@ background: #707070;
 .closed_time {
     color:#fb6340;  
 }
+
+.fieldImage {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.1);
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+}
+
+lottie-player {
+    margin: 0 auto;
+}
+
+/* alllergen */
+.item-offer-horizontal > .info > .allergens{display: flex;gap: 0;align-items: center;}
+.item-offer-horizontal > .info > .allergens > .price{color: var(--hfont-color);font-weight: var(--font-weight-bold);}
+.allergen{
+    display: inline-flex;
+    font-size: calc(var(--font-size) - 5px);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 1px;
+    line-height: 1;
+    padding: 6px 6px;
+    background: pink;
+    border-radius: var(--border-radius);
+    background: #eee;
+    color: #00bc8b;
+}
+.allergen img {
+    height: 15px;
+}
+.allergen.disabled{background:#EEE;color: #CCC;}

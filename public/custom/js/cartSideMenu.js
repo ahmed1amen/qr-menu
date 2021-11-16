@@ -12,8 +12,12 @@ function closeNav() {
 $(window).scroll(function(){
     if ($(window).scrollTop() >= 1) {
         $('#navbar-main').addClass('custom-nav');
+        $('#topDarkLogo').show();
+        $('#topLightLogo').hide();
     }
     else {
         $('#navbar-main').removeClass('custom-nav');
+        $('#topDarkLogo').hide();
+        $('#topLightLogo').show();
     }
 });

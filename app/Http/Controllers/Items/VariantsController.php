@@ -46,7 +46,7 @@ class VariantsController extends Controller
             'title'=>__('Variants for')." ".$item->name,
             'action_link'=>route('items.variants.create', ['item'=>$item->id]),
             'action_name'=>'Add new variant',
-            'items'=>$item->variants()->paginate(10),
+            'items'=>$item->uservariants()->paginate(10),
             'item_names'=>'variants',
             'breadcrumbs'=>[
                 [__('Menu'), '/items'],
@@ -109,6 +109,7 @@ class VariantsController extends Controller
             'options'=>json_encode($request->option),
         ]);
         $variant->save();
+        $this->doUpdateOfSystemVariants($variant->item);
 
         return redirect()->route('items.variants.index', ['item'=>$item->id])->withStatus(__('Variant has been added'));
     }
@@ -180,6 +181,8 @@ class VariantsController extends Controller
         $variant->options = json_encode($request->option);
         $variant->update();
 
+        $this->doUpdateOfSystemVariants($variant->item);
+
         return redirect()->route('items.variants.index', ['item'=>$variant->item->id])->withStatus(__('Variant has been updated'));
     }
 
@@ -191,8 +194,18 @@ class VariantsController extends Controller
      */
     public function destroy(Variants $variant)
     {
+        $item=$variant->item;
         $variant->delete();
+        $this->doUpdateOfSystemVariants($item);
 
         return redirect()->route('items.variants.index', ['item'=>$variant->item->id])->withStatus(__('Variant has been removed'));
+    }
+
+    private function doUpdateOfSystemVariants(Items $item){
+        if($item->enable_system_variants==1){
+            //Delete all system 
+            $item->systemvariants()->forceDelete();
+            $item->makeAllMissingVariants($item->price);
+        }
     }
 }

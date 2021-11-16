@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Image;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cookie;
 
 class SettingsController extends Controller
 {
@@ -189,11 +190,13 @@ class SettingsController extends Controller
     }
 
     public function cloudupdate(){
+        //Always run migration
+        Artisan::call('migrate', ['--force' => true]);
+
+        Artisan::call('module:migrate', ['--force' => true]);
+
         if (auth()->user()->hasRole('admin')) {
-
-            //Always run migration
-            Artisan::call('migrate', ['--force' => true]);
-
+            
             $memory_limit = ini_get('memory_limit');
             if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
                 if ($matches[2] == 'M') {
@@ -247,14 +250,17 @@ class SettingsController extends Controller
             
             $theChangeLog="";
             if(config('settings.enalbe_change_log_in_update')){
-                $ftChange="https://raw.githubusercontent.com/dimovdaniel/foodtigerdocs/master/changelog/changelog.md        ";
+                $ftChange="https://raw.githubusercontent.com/dimovdaniel/foodtigerdocs/master/changelog/changelog.md";
                 $qrChange="https://raw.githubusercontent.com/dimovdaniel/qrmakerdocs/master/changelog/changelog.md";
                 $wpChange="https://raw.githubusercontent.com/mobidonia/whatsappfooddocs/master/changelog/changelog.md";
+                $pcChange="https://raw.githubusercontent.com/dimovdaniel/poscloud/master/changelog/changelog.md";
                 if(config('app.isft')){
                     $theChangeLog=@file_get_contents($ftChange);
                 }else {
                     if(config('settings.is_whatsapp_ordering_mode')){
                         $theChangeLog=@file_get_contents($wpChange);
+                    }else if(config('settings.is_pos_cloud_mode')){
+                        $theChangeLog=@file_get_contents($pcChange);
                     }else{
                         $theChangeLog=@file_get_contents($qrChange);
                     }
@@ -294,8 +300,6 @@ class SettingsController extends Controller
             $cssfront = File::get(base_path('public/byadmin/front.css'));
             $cssback = File::get(base_path('public/byadmin/back.css'));
 
-            //$jsfront = file_get_contents(__DIR__.'/../../../public/byadmin/front.js');
-            //dd($cssfront);
 
             $hasDemoRestaurants = Restorant::where('phone', '(530) 625-9694')->count() > 0;
 
@@ -364,11 +368,11 @@ class SettingsController extends Controller
 
     public function setEnvironmentValue(array $values)
     {
+       
         $envFile = app()->environmentFilePath();
         $str = "\n";
         $str .= file_get_contents($envFile);
         $str .= "\n"; // In case the searched variable is in the last line without \n
-
         if (count($values) > 0) {
             foreach ($values as $envKey => $envValue) {
                 if ($envValue == trim($envValue) && strpos($envValue, ' ') !== false) {
@@ -383,7 +387,12 @@ class SettingsController extends Controller
                 if ((! $keyPosition && $keyPosition != 0) || ! $endOfLinePosition || ! $oldLine) {
                     $str .= "{$envKey}={$envValue}\n";
                 } else {
-                    $str = str_replace($oldLine, "{$envKey}={$envValue}", $str);
+                    if($envKey=="DB_PASSWORD"){
+                        $str = str_replace($oldLine, "{$envKey}=\"{$envValue}\"", $str);
+                    }else{
+                        $str = str_replace($oldLine, "{$envKey}={$envValue}", $str);
+                    }
+                    
                 }
             }
         }
@@ -414,8 +423,6 @@ class SettingsController extends Controller
            return redirect()->route('settings.index')->with('message', 'Url route for restaurant can\'t be empty!');
         }
 
-        //$newEnvs = array_merge($this->getCurrentEnv(), $request->env);
-        //dd($newEnvs);
         $this->setEnvironmentValue($request->env);
         Artisan::call('config:clear');
         Artisan::call('cache:clear');
@@ -438,7 +445,6 @@ class SettingsController extends Controller
         $settings->order_fields=$request->order_fields;
         $settings->update();
         
-        //$settings->order_options = $request->order_options;
 
         fwrite(fopen(__DIR__.'/../../../public/byadmin/front.js', 'w'), str_replace('tagscript', 'script', $request->jsfront));
         fwrite(fopen(__DIR__.'/../../../public/byadmin/back.js', 'w'), str_replace('tagscript', 'script', $request->jsback));
@@ -486,7 +492,6 @@ class SettingsController extends Controller
             );
         }
 
-        //restorant_details_cover_image
         if ($request->hasFile('restorant_details_cover_image')) {
             $settings->restorant_details_cover_image = $this->saveImageVersions(
                 $this->imagePath,
@@ -506,6 +511,11 @@ class SettingsController extends Controller
             $wpDemo = Image::make($request->wphomehero->getRealPath());
             $wpDemo->save(public_path().'/social/img/wpordering.svg'); 
         }
+
+        if ($request->hasFile('poshomehero')) {
+            $wpDemo = Image::make($request->poshomehero->getRealPath());
+            $wpDemo->save(public_path().'/soft/img/poshero.jpeg'); 
+        }
         
         $images = [
             public_path().'/impactfront/img/flayer.png',
@@ -520,8 +530,11 @@ class SettingsController extends Controller
         for ($i = 0; $i < 7; $i++) {
             if ($request->hasFile('ftimig'.$i)) {
                 chmod($images[$i], 0777);
-                //dd($request->all()['ftimig'.$i]);
-                $imDemo = Image::make($request->all()['ftimig'.$i]->getRealPath())->fit(480, 320);
+                if($i==0){
+                    $imDemo = Image::make($request->all()['ftimig'.$i]->getRealPath())->fit(600, 600);
+                }else{
+                    $imDemo = Image::make($request->all()['ftimig'.$i]->getRealPath())->fit(480, 320);
+                }   
                 $imDemo->save($images[$i]);
             }
         }
@@ -567,16 +580,18 @@ class SettingsController extends Controller
 
     public function landing(){
 
+        $locale = Cookie::get('lang') ? Cookie::get('lang') : config('settings.app_locale');
         if (isset($_GET['lang'])) {
             //3. Change locale to the new local
             app()->setLocale($_GET['lang']);
+            $locale =$_GET['lang'];
             session(['applocale_change' => $_GET['lang']]);
         }
 
         $this->validateAccess();
 
 
-        $availableLanguagesENV = ENV('FRONT_LANGUAGES', 'EN,English,IT,Italian,FR,French,DE,German,ES,Spanish,RU,Russian,PT,Portuguese,TR,Turkish');
+        $availableLanguagesENV = config('settings.front_languages');
         $exploded = explode(',', $availableLanguagesENV);
         $availableLanguages = [];
         for ($i = 0; $i < count($exploded); $i += 2) {
@@ -590,6 +605,7 @@ class SettingsController extends Controller
         
         return view('landing.index', [
             'sections' => $sections,
+            'locale'=>$locale,
             'availableLanguages'=> $availableLanguages,
             'currentLanguage'=>$currentEnvLanguage
             ]);
